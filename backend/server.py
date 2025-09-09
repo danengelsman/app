@@ -562,6 +562,11 @@ async def get_analytics_dashboard():
     # Get recent content performance
     recent_content = await db.content_pieces.find().sort("created_date", -1).limit(10).to_list(10)
     
+    # Convert ObjectIds to strings for JSON serialization
+    for content in recent_content:
+        if '_id' in content:
+            content['_id'] = str(content['_id'])
+    
     # Get trending topics count
     topics_count = await db.trending_topics.count_documents({
         "discovered_date": {"$gte": datetime.utcnow() - timedelta(days=7)}
