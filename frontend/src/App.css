@@ -1,34 +1,228 @@
+.App {
+  text-align: center;
+}
+
 .App-logo {
-    height: 40vmin;
-    pointer-events: none;
+  height: 40vmin;
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
 }
 
 .App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+  background-color: #0f0f10;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
 }
 
 .App-link {
-    color: #61dafb;
+  color: #61dafb;
 }
 
 @keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Custom styles for the multi-agent system */
+.gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+}
+
+.status-indicator {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.agent-card {
+  @apply bg-white rounded-lg shadow-md border border-gray-200 p-4 hover:shadow-lg transition-shadow duration-300;
+}
+
+.content-card {
+  @apply bg-white rounded-lg shadow-sm border border-gray-100 p-4 hover:shadow-md transition-all duration-200;
+}
+
+.workflow-animation {
+  animation: workflowPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes workflowPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+.platform-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.platform-youtube {
+  @apply bg-red-100 text-red-800;
+}
+
+.platform-instagram {
+  @apply bg-pink-100 text-pink-800;
+}
+
+.platform-tiktok {
+  @apply bg-gray-800 text-white;
+}
+
+.platform-twitter {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.trend-score-high {
+  @apply bg-green-100 text-green-800;
+}
+
+.trend-score-medium {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.trend-score-low {
+  @apply bg-red-100 text-red-800;
+}
+
+.loading-spinner {
+  @apply animate-spin rounded-full border-2 border-gray-300 border-t-blue-600;
+}
+
+/* Dashboard specific styles */
+.dashboard-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.stat-card {
+  @apply bg-white p-6 rounded-lg shadow-sm border border-gray-200;
+}
+
+.stat-number {
+  @apply text-3xl font-bold;
+}
+
+.stat-label {
+  @apply text-sm text-gray-500 mt-1;
+}
+
+/* Agent status colors */
+.status-idle {
+  @apply bg-gray-100 text-gray-700;
+}
+
+.status-running {
+  @apply bg-yellow-100 text-yellow-700 animate-pulse;
+}
+
+.status-completed {
+  @apply bg-green-100 text-green-700;
+}
+
+.status-error {
+  @apply bg-red-100 text-red-700;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dashboard-grid {
+    @apply grid-cols-1;
+  }
+  
+  .agent-grid {
+    @apply grid-cols-1;
+  }
+  
+  .content-grid {
+    @apply grid-cols-1;
+  }
+}
+
+/* Smooth animations */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Navigation styles */
+.nav-link {
+  @apply text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200;
+}
+
+.nav-link.active {
+  @apply text-blue-600 bg-blue-50;
+}
+
+/* Content library styles */
+.content-type-video_long {
+  @apply bg-red-50 text-red-700;
+}
+
+.content-type-video_short {
+  @apply bg-orange-50 text-orange-700;
+}
+
+.content-type-post {
+  @apply bg-blue-50 text-blue-700;
+}
+
+.content-type-blog {
+  @apply bg-purple-50 text-purple-700;
+}
+
+.content-type-thread {
+  @apply bg-cyan-50 text-cyan-700;
+}
+
+/* Hashtag styles */
+.hashtag {
+  @apply inline-block bg-blue-50 text-blue-600 text-xs px-2 py-1 rounded-full mr-1 mb-1;
+}
+
+/* Color swatch styles */
+.color-swatch {
+  @apply w-12 h-12 rounded-lg border-2 border-gray-200 shadow-sm;
+}
+
+/* Workflow result styles */
+.workflow-result {
+  @apply bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4;
+}
+
+.workflow-success {
+  @apply bg-green-50 border-green-200;
+}
+
+.workflow-error {
+  @apply bg-red-50 border-red-200;
 }
