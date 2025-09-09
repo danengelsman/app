@@ -509,6 +509,12 @@ async def get_content_pieces(platform: Optional[str] = None, limit: int = 20):
         query["platform"] = platform
     
     content = await db.content_pieces.find(query).sort("created_date", -1).limit(limit).to_list(limit)
+    
+    # Convert ObjectIds to strings for JSON serialization
+    for item in content:
+        if '_id' in item:
+            item['_id'] = str(item['_id'])
+    
     return {"content": content}
 
 @api_router.get("/branding")
