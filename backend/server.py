@@ -349,6 +349,12 @@ class BrandAmbassadorAgent(BaseAgent):
         
         return {"status": "success", "branding_kit": branding_kit.dict()}
 
+# Import extended agents
+from agents_extended import (
+    AuditorOptimizerAgent, MonetizationAgent, BlogWriterAgent,
+    ContentGeneratorAgent, AnalyticsAgent, ComplianceAgent
+)
+
 # Central Overseer Agent
 class CentralOverseerAgent(BaseAgent):
     def __init__(self):
@@ -359,7 +365,13 @@ class CentralOverseerAgent(BaseAgent):
         self.sub_agents = {
             "trending_topics": TrendingTopicsAgent(),
             "topic_selector": TopicSelectorAgent(),
-            "brand_ambassador": BrandAmbassadorAgent()
+            "brand_ambassador": BrandAmbassadorAgent(),
+            "auditor_optimizer": AuditorOptimizerAgent(),
+            "monetization": MonetizationAgent(),
+            "blog_writer": BlogWriterAgent(),
+            "content_generator": ContentGeneratorAgent(),
+            "analytics": AnalyticsAgent(),
+            "compliance": ComplianceAgent()
         }
 
     async def execute_full_workflow(self) -> Dict[str, Any]:
