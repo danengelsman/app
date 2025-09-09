@@ -493,6 +493,12 @@ async def get_agents_status():
 async def get_trending_topics(limit: int = 10):
     """Get recent trending topics"""
     topics = await db.trending_topics.find().sort("discovered_date", -1).limit(limit).to_list(limit)
+    
+    # Convert ObjectIds to strings for JSON serialization
+    for topic in topics:
+        if '_id' in topic:
+            topic['_id'] = str(topic['_id'])
+    
     return {"topics": topics}
 
 @api_router.get("/content")
