@@ -513,6 +513,49 @@ async def get_branding_kit():
         return {"message": "No branding kit found. Run the workflow to create one."}
     return {"branding": branding}
 
+@api_router.get("/blog-posts")
+async def get_blog_posts(limit: int = 10):
+    """Get blog posts"""
+    posts = await db.blog_posts.find().sort("published_date", -1).limit(limit).to_list(limit)
+    return {"posts": posts}
+
+@api_router.get("/analytics/detailed")
+async def get_detailed_analytics():
+    """Get detailed analytics from analytics agent"""
+    try:
+        analytics_agent = AnalyticsAgent()
+        result = await analytics_agent.execute_task({})
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/content/compliance-check")
+async def check_content_compliance():
+    """Run compliance check on all content"""
+    try:
+        compliance_agent = ComplianceAgent()
+        
+        # Get recent content
+        content = await db.content_pieces.find().limit(10).to_list(10)
+        
+        result = await compliance_agent.execute_task({"content_pieces": content})
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/monetization/strategies")
+async def get_monetization_strategies():
+    """Get monetization strategies"""
+    # This would typically be stored in database
+    return {
+        "strategies": [
+            {"platform": "youtube", "type": "adsense", "estimated_revenue": 150},
+            {"platform": "instagram", "type": "affiliate", "estimated_revenue": 75},
+            {"platform": "blog", "type": "subscriptions", "estimated_revenue": 300}
+        ],
+        "total_estimated_monthly": 525
+    }
+
 @api_router.get("/analytics/dashboard")
 async def get_analytics_dashboard():
     """Get comprehensive analytics dashboard data"""
