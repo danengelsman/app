@@ -523,6 +523,11 @@ async def get_branding_kit():
     branding = await db.branding_kits.find_one(sort=[("updated_date", -1)])
     if not branding:
         return {"message": "No branding kit found. Run the workflow to create one."}
+    
+    # Convert ObjectId to string for JSON serialization
+    if '_id' in branding:
+        branding['_id'] = str(branding['_id'])
+    
     return {"branding": branding}
 
 @api_router.get("/blog-posts")
