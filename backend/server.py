@@ -534,6 +534,12 @@ async def get_branding_kit():
 async def get_blog_posts(limit: int = 10):
     """Get blog posts"""
     posts = await db.blog_posts.find().sort("published_date", -1).limit(limit).to_list(limit)
+    
+    # Convert ObjectIds to strings for JSON serialization
+    for post in posts:
+        if '_id' in post:
+            post['_id'] = str(post['_id'])
+    
     return {"posts": posts}
 
 @api_router.get("/analytics/detailed")
