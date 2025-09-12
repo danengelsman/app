@@ -41,23 +41,23 @@ const Dashboard = () => {
         <p className="text-blue-100">Autonomous content creation powered by 7+ specialized AI agents</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-lg border">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Weekly Trending Topics</h3>
-          <p className="text-3xl font-bold text-blue-600">{dashboardData?.trending_topics_this_week || 0}</p>
-          <p className="text-sm text-gray-500">Topics discovered this week</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg border">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">Weekly Trending Topics</h3>
+          <p className="text-2xl sm:text-3xl font-bold text-blue-600">{dashboardData?.trending_topics_this_week || 0}</p>
+          <p className="text-xs sm:text-sm text-gray-500">Topics discovered this week</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg border">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Content Pieces</h3>
-          <p className="text-3xl font-bold text-green-600">{dashboardData?.recent_content?.length || 0}</p>
-          <p className="text-sm text-gray-500">Recent content created</p>
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg border">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">Content Pieces</h3>
+          <p className="text-2xl sm:text-3xl font-bold text-green-600">{dashboardData?.recent_content?.length || 0}</p>
+          <p className="text-xs sm:text-sm text-gray-500">Recent content created</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg border">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Platforms</h3>
-          <p className="text-3xl font-bold text-purple-600">{dashboardData?.platform_distribution?.length || 0}</p>
-          <p className="text-sm text-gray-500">Active platforms</p>
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg border sm:col-span-2 lg:col-span-1">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">Platforms</h3>
+          <p className="text-2xl sm:text-3xl font-bold text-purple-600">{dashboardData?.platform_distribution?.length || 0}</p>
+          <p className="text-xs sm:text-sm text-gray-500">Active platforms</p>
         </div>
       </div>
 
