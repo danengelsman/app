@@ -189,6 +189,7 @@ class TrendingTopicsAgent(BaseAgent):
         
         try:
             # Parse the LLM response and create trending topics
+            logging.info(f"Trending Topics Agent received response: {response[:300]}")
             topics_data = json.loads(response)
             trending_topics = []
             
@@ -205,6 +206,7 @@ class TrendingTopicsAgent(BaseAgent):
                 # Save to database
                 await db.trending_topics.insert_one(topic.dict())
                 trending_topics.append(topic)
+                logging.info(f"Saved trending topic: {topic.keyword}")
             
             return {"status": "success", "topics_found": len(trending_topics), "topics": [t.dict() for t in trending_topics]}
         
