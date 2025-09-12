@@ -306,10 +306,10 @@ const ContentLibrary = () => {
           </select>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {content.map((item, index) => (
             <div key={item.id || index} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                 <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
                   {item.platform}
                 </span>
@@ -318,8 +318,8 @@ const ContentLibrary = () => {
                 </span>
               </div>
               
-              <h3 className="font-semibold text-gray-700 mb-2">{item.title}</h3>
-              <p className="text-sm text-gray-500 mb-3">{item.description.slice(0, 100)}...</p>
+              <h3 className="font-semibold text-gray-700 mb-2 text-sm sm:text-base line-clamp-2">{item.title}</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mb-3 line-clamp-3">{item.description.slice(0, 100)}...</p>
               
               {item.hashtags && item.hashtags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-2">
