@@ -586,6 +586,63 @@ Full thread with detailed analysis...`,
     alert('Content exported as JSON file!');
   };
 
+  // Helper function to clean up malformed content
+  const cleanContent = (text) => {
+    if (!text) return '';
+    
+    // Remove JSON markdown blocks
+    let cleaned = text.replace(/```json\s*\{[^}]*\}/g, '');
+    cleaned = cleaned.replace(/```json/g, '');
+    cleaned = cleaned.replace(/```/g, '');
+    
+    // Try to extract description from JSON if it exists
+    try {
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.description) {
+          return parsed.description;
+        }
+        if (parsed.content && parsed.content.description) {
+          return parsed.content.description;
+        }
+      }
+    } catch (e) {
+      // Fall through to cleaned text
+    }
+    
+    // Clean up and return first meaningful sentence
+    cleaned = cleaned.trim();
+    const sentences = cleaned.split(/[.!?]+/);
+    return sentences[0] ? sentences[0].trim() + '.' : cleaned.slice(0, 150) + '...';
+  };
+
+  // Helper function to clean titles
+  const cleanTitle = (title) => {
+    if (!title) return '';
+    
+    // Remove platform suffix if it looks like "Topic - platform"
+    let cleaned = title.replace(/ - (youtube|instagram|tiktok|twitter)$/i, '');
+    
+    // Try to extract title from JSON if it exists
+    try {
+      const jsonMatch = title.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.title) {
+          return parsed.title;
+        }
+        if (parsed.content && parsed.content.title) {
+          return parsed.content.title;
+        }
+      }
+    } catch (e) {
+      // Fall through to cleaned title
+    }
+    
+    return cleaned.trim();
+  };
+
   const handleContentClick = (item) => {
     setSelectedContent(item);
   };
