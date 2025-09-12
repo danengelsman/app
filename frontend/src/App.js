@@ -170,16 +170,16 @@ const AgentsControl = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.entries(agentsStatus).map(([key, agent]) => (
             <div key={key} className="p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-700">{agent.name}</h3>
-                <span className={`px-2 py-1 rounded text-xs ${getStatusColor(agent.status)}`}>
+                <h3 className="font-semibold text-gray-700 text-sm sm:text-base truncate pr-2">{agent.name}</h3>
+                <span className={`px-2 py-1 rounded text-xs flex-shrink-0 ${getStatusColor(agent.status)}`}>
                   {agent.status}
                 </span>
               </div>
-              <p className="text-sm text-gray-500">ID: {agent.agent_id.slice(0, 8)}...</p>
+              <p className="text-xs sm:text-sm text-gray-500">ID: {agent.agent_id.slice(0, 8)}...</p>
             </div>
           ))}
         </div>
