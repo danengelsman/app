@@ -210,8 +210,26 @@ class TrendingTopicsAgent(BaseAgent):
         
         except json.JSONDecodeError:
             # Fallback: create topics from text response
-            fallback_topics = self._create_fallback_topics(response)
-            return {"status": "success", "topics_found": len(fallback_topics), "topics": fallback_topics}
+            logging.warning(f"JSON parsing failed for trending topics. Response: {response[:200]}")
+            fallback_topics_data = self._create_fallback_topics(response)
+            trending_topics = []
+            
+            # Create TrendingTopic objects and save to database
+            for topic_data in fallback_topics_data:
+                topic = TrendingTopic(
+                    keyword=topic_data.get('keyword', ''),
+                    search_volume=topic_data.get('search_volume', 50000),
+                    competition_level='medium',
+                    trend_score=float(topic_data.get('trend_score', 5)),
+                    platforms=[ContentPlatform.YOUTUBE, ContentPlatform.INSTAGRAM, ContentPlatform.TIKTOK],
+                    metadata=topic_data
+                )
+                
+                # Save to database
+                await db.trending_topics.insert_one(topic.dict())
+                trending_topics.append(topic)
+            
+            return {"status": "success", "topics_found": len(trending_topics), "topics": [t.dict() for t in trending_topics]}
 
     def _convert_volume_to_int(self, volume: str) -> int:
         volume_map = {"high": 100000, "medium": 50000, "low": 10000}
