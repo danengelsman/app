@@ -831,10 +831,10 @@ Full thread with detailed analysis...`,
               </div>
               
               <h3 className="font-semibold text-gray-700 mb-2 text-sm sm:text-base line-clamp-2 hover:text-blue-600">
-                {item.title}
+                {cleanTitle(item.title)}
               </h3>
               <p className="text-xs sm:text-sm text-gray-500 mb-3 line-clamp-3">
-                {item.description.slice(0, 100)}...
+                {cleanContent(item.description)}
               </p>
               
               {item.hashtags && item.hashtags.length > 0 && (
