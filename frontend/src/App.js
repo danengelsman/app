@@ -200,6 +200,7 @@ const AgentsControl = () => {
 const TrendingTopics = () => {
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTopic, setSelectedTopic] = useState(null);
 
   useEffect(() => {
     fetchTopics();
@@ -216,6 +217,14 @@ const TrendingTopics = () => {
     }
   };
 
+  const handleTopicClick = (topic) => {
+    setSelectedTopic(topic);
+  };
+
+  const handleBackToList = () => {
+    setSelectedTopic(null);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -224,6 +233,91 @@ const TrendingTopics = () => {
     );
   }
 
+  // Show detailed topic view
+  if (selectedTopic) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white p-6 rounded-lg shadow-lg border">
+          {/* Back button */}
+          <div className="mb-6">
+            <button
+              onClick={handleBackToList}
+              className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Trending Topics
+            </button>
+          </div>
+
+          {/* Topic header */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{selectedTopic.keyword}</h1>
+              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                Trend Score: {selectedTopic.trend_score}
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-700 mb-1">Search Volume</h3>
+                <p className="text-2xl font-bold text-green-600">{selectedTopic.search_volume.toLocaleString()}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-700 mb-1">Competition</h3>
+                <p className="text-lg font-semibold text-yellow-600 capitalize">{selectedTopic.competition_level}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-700 mb-1">Discovered</h3>
+                <p className="text-sm text-gray-600">{new Date(selectedTopic.discovered_date).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Platforms */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-700 mb-3">Best Platforms</h3>
+            <div className="flex flex-wrap gap-2">
+              {selectedTopic.platforms.map((platform, i) => (
+                <span key={i} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium capitalize">
+                  {platform}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Metadata */}
+          {selectedTopic.metadata && Object.keys(selectedTopic.metadata).length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-700 mb-3">Additional Details</h3>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <pre className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {JSON.stringify(selectedTopic.metadata, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-3 pt-6 border-t">
+            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              Generate Content for This Topic
+            </button>
+            <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+              Add to Content Calendar
+            </button>
+            <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              Export Topic Data
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show topics list view
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-lg border">
@@ -231,19 +325,27 @@ const TrendingTopics = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {topics.map((topic, index) => (
-            <div key={topic.id || index} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+            <div 
+              key={topic.id || index} 
+              className="p-4 border rounded-lg hover:shadow-md transition-all duration-200 cursor-pointer hover:border-blue-300 hover:bg-blue-50"
+              onClick={() => handleTopicClick(topic)}
+            >
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-700">{topic.keyword}</h3>
+                <h3 className="font-semibold text-gray-700 hover:text-blue-600">{topic.keyword}</h3>
                 <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
                   Score: {topic.trend_score}
                 </span>
               </div>
               
-              <div className="text-sm text-gray-500 space-y-1">
+              <div className="text-sm text-gray-500 space-y-1 mb-3">
                 <p>Search Volume: {topic.search_volume.toLocaleString()}</p>
                 <p>Competition: {topic.competition_level}</p>
                 <p>Platforms: {topic.platforms.join(', ')}</p>
                 <p>Discovered: {new Date(topic.discovered_date).toLocaleDateString()}</p>
+              </div>
+              
+              <div className="text-xs text-blue-600 font-medium">
+                Click to view details →
               </div>
             </div>
           ))}
