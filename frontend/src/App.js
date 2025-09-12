@@ -148,12 +148,12 @@ const AgentsControl = () => {
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-lg border">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Agent Control Center</h2>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Agent Control Center</h2>
           <button
             onClick={executeWorkflow}
             disabled={workflowRunning}
-            className={`px-6 py-3 rounded-lg font-semibold ${
+            className={`w-full sm:w-auto px-4 sm:px-6 py-3 rounded-lg font-semibold text-sm sm:text-base ${
               workflowRunning
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-blue-600 text-white hover:bg-blue-700'
