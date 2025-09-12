@@ -260,6 +260,16 @@
     min-height: 44px;
     min-width: 44px;
   }
+  
+  /* Apply touch targets to all buttons on mobile */
+  button {
+    min-height: 44px;
+  }
+  
+  /* Ensure select elements are also touch-friendly */
+  select {
+    min-height: 44px;
+  }
 }
 
 /* Workflow result styles */
