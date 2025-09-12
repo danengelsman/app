@@ -193,13 +193,30 @@ class MultiAgentSystemTester:
         )
 
     def test_analytics_dashboard(self):
-        """Test analytics dashboard endpoint"""
-        return self.run_test(
+        """Test analytics dashboard endpoint with trending topics validation"""
+        success, response = self.run_test(
             "Get Analytics Dashboard",
             "GET",
             "analytics/dashboard",
             200
         )
+        
+        if success and response:
+            topics_count = response.get('trending_topics_this_week', 0)
+            print(f"   Weekly Trending Topics Count: {topics_count}")
+            
+            if topics_count == 0:
+                print("   ⚠️  Dashboard still shows 0 trending topics - bug may not be fully fixed")
+            else:
+                print(f"   ✅ Dashboard shows {topics_count} trending topics (no longer 0)")
+            
+            recent_content = response.get('recent_content', [])
+            print(f"   Recent Content Count: {len(recent_content)}")
+            
+            platform_distribution = response.get('platform_distribution', [])
+            print(f"   Platform Distribution: {len(platform_distribution)} platforms")
+            
+        return success, response
 
     def test_detailed_analytics(self):
         """Test detailed analytics endpoint"""
