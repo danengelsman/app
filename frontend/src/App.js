@@ -473,6 +473,7 @@ const ContentLibrary = () => {
   const [selectedPlatform, setSelectedPlatform] = useState('');
   const [selectedContent, setSelectedContent] = useState(null);
   const [error, setError] = useState(null);
+  const [showFullContent, setShowFullContent] = useState(false);
 
   useEffect(() => {
     fetchContent();
