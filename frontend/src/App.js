@@ -690,8 +690,29 @@ Full thread with detailed analysis...`,
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <p className="text-gray-500">Loading content library...</p>
+        <button 
+          onClick={fetchContent}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (error && content.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 bg-red-50 rounded-lg">
+        <p className="text-red-600 mb-4">{error}</p>
+        <button 
+          onClick={fetchContent}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+        >
+          Retry
+        </button>
       </div>
     );
   }
