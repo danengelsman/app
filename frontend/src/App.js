@@ -506,6 +506,50 @@ Full thread with detailed analysis...`,
     }
   };
 
+  const handleEditContent = () => {
+    alert('Edit Content functionality would open an editor to modify the content.');
+    // In a real app, this would open an editing interface
+  };
+
+  const handleSchedulePost = () => {
+    const scheduleDate = prompt('Enter schedule date (YYYY-MM-DD HH:MM):');
+    if (scheduleDate) {
+      alert(`Content scheduled for: ${scheduleDate}`);
+      // In a real app, this would integrate with scheduling APIs
+    }
+  };
+
+  const handleCopyContent = async () => {
+    try {
+      const contentToCopy = `Title: ${selectedContent.title}\n\nDescription: ${selectedContent.description}\n\nScript:\n${selectedContent.script}\n\nHashtags: ${selectedContent.hashtags?.join(' #') || 'None'}`;
+      await navigator.clipboard.writeText(contentToCopy);
+      alert('Content copied to clipboard!');
+    } catch (error) {
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = `Title: ${selectedContent.title}\n\nDescription: ${selectedContent.description}\n\nScript:\n${selectedContent.script}`;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Content copied to clipboard!');
+    }
+  };
+
+  const handleExportContent = () => {
+    const dataStr = JSON.stringify(selectedContent, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `content-${selectedContent.id || 'export'}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    alert('Content exported as JSON file!');
+  };
+
   const handleContentClick = (item) => {
     setSelectedContent(item);
   };
