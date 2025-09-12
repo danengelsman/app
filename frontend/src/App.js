@@ -480,12 +480,15 @@ const ContentLibrary = () => {
 
   const fetchContent = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const params = selectedPlatform ? `?platform=${selectedPlatform}` : '';
-      const response = await axios.get(`${API}/content${params}`, { timeout: 10000 });
+      const response = await axios.get(`${API}/content${params}`, { timeout: 15000 });
       setContent(response.data.content);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching content:', error);
+      setError('Failed to load content. Please try again.');
       setLoading(false);
       
       // Fallback: Show sample content for demonstration
