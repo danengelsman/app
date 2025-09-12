@@ -581,47 +581,64 @@ Full thread with detailed analysis...`,
   };
 
   const handleEditContent = () => {
-    alert('Edit Content functionality would open an editor to modify the content.');
-    // In a real app, this would open an editing interface
+    console.log('Edit Content clicked!');
+    alert(`Edit Content clicked!\n\nThis would open an editor for:\n"${selectedContent.title}"\n\nIn a full implementation, this would provide a content editing interface.`);
   };
 
   const handleSchedulePost = () => {
-    const scheduleDate = prompt('Enter schedule date (YYYY-MM-DD HH:MM):');
+    console.log('Schedule Post clicked!');
+    const scheduleDate = prompt(`Schedule post: "${selectedContent.title}"\n\nEnter schedule date (YYYY-MM-DD HH:MM):`);
     if (scheduleDate) {
-      alert(`Content scheduled for: ${scheduleDate}`);
-      // In a real app, this would integrate with scheduling APIs
+      alert(`✅ Content scheduled for: ${scheduleDate}\n\nPlatform: ${selectedContent.platform}\nContent Type: ${selectedContent.content_type}`);
     }
   };
 
   const handleCopyContent = async () => {
+    console.log('Copy Content clicked!');
     try {
-      const contentToCopy = `Title: ${selectedContent.title}\n\nDescription: ${selectedContent.description}\n\nScript:\n${selectedContent.script}\n\nHashtags: ${selectedContent.hashtags?.join(' #') || 'None'}`;
+      const contentToCopy = `TITLE: ${cleanTitle(selectedContent.title)}\n\nDESCRIPTION: ${cleanContent(selectedContent.description)}\n\nSCRIPT:\n${selectedContent.script || 'No script available'}\n\nHASHTAGS:\n${selectedContent.hashtags?.map(tag => `#${tag}`).join(' ') || 'No hashtags'}\n\nPLATFORM: ${selectedContent.platform}\nCONTENT TYPE: ${selectedContent.content_type}`;
+      
       await navigator.clipboard.writeText(contentToCopy);
-      alert('Content copied to clipboard!');
+      alert('✅ Content copied to clipboard!\n\nThe full content including title, description, script, and hashtags has been copied.');
     } catch (error) {
+      console.log('Clipboard API failed, using fallback');
       // Fallback for browsers that don't support clipboard API
       const textArea = document.createElement('textarea');
-      textArea.value = `Title: ${selectedContent.title}\n\nDescription: ${selectedContent.description}\n\nScript:\n${selectedContent.script}`;
+      textArea.value = `${cleanTitle(selectedContent.title)}\n\n${cleanContent(selectedContent.description)}\n\n${selectedContent.script || 'No script'}`;
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      alert('Content copied to clipboard!');
+      alert('✅ Content copied to clipboard! (Fallback method used)');
     }
   };
 
   const handleExportContent = () => {
-    const dataStr = JSON.stringify(selectedContent, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `content-${selectedContent.id || 'export'}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    
-    alert('Content exported as JSON file!');
+    console.log('Export Content clicked!');
+    try {
+      const exportData = {
+        ...selectedContent,
+        title: cleanTitle(selectedContent.title),
+        description: cleanContent(selectedContent.description),
+        exported_at: new Date().toISOString(),
+        export_source: 'TechPulse AI Content Management System'
+      };
+      
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportFileDefaultName = `${cleanTitle(selectedContent.title).replace(/[^a-z0-9]/gi, '_').toLowerCase()}_content.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+      
+      alert(`✅ Content exported successfully!\n\nFile: ${exportFileDefaultName}\nContent: ${cleanTitle(selectedContent.title)}`);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('❌ Export failed. Please try again.');
+    }
   };
 
   // Helper function to clean up malformed content
