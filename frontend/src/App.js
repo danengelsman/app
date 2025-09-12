@@ -291,12 +291,12 @@ const ContentLibrary = () => {
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-lg border">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Content Library</h2>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Content Library</h2>
           <select
             value={selectedPlatform}
             onChange={(e) => setSelectedPlatform(e.target.value)}
-            className="px-4 py-2 border rounded-lg"
+            className="w-full sm:w-auto px-4 py-2 border rounded-lg text-sm sm:text-base"
           >
             <option value="">All Platforms</option>
             <option value="youtube">YouTube</option>
