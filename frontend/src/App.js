@@ -10,6 +10,7 @@ const API = `${BACKEND_URL}/api`;
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -17,19 +18,51 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await axios.get(`${API}/analytics/dashboard`);
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(`${API}/analytics/dashboard`, { 
+        timeout: 15000 // 15 second timeout
+      });
       setDashboardData(response.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setError('Failed to load dashboard data. Please try refreshing the page.');
       setLoading(false);
+      // Set fallback data
+      setDashboardData({
+        trending_topics_this_week: 0,
+        recent_content: [],
+        platform_distribution: []
+      });
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <p className="text-gray-500">Loading dashboard...</p>
+        <button 
+          onClick={fetchDashboardData}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 bg-red-50 rounded-lg">
+        <p className="text-red-600 mb-4">{error}</p>
+        <button 
+          onClick={fetchDashboardData}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+        >
+          Retry
+        </button>
       </div>
     );
   }
