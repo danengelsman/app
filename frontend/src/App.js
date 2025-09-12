@@ -472,6 +472,7 @@ const ContentLibrary = () => {
   const [loading, setLoading] = useState(true);
   const [selectedPlatform, setSelectedPlatform] = useState('');
   const [selectedContent, setSelectedContent] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchContent();
