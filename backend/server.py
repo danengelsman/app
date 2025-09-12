@@ -323,7 +323,18 @@ class TopicSelectorAgent(BaseAgent):
         try:
             content_data = json.loads(response)
         except:
-            content_data = {"title": f"{topic.get('keyword', '')} - {platform.value}", "description": response[:200]}
+            # If JSON parsing fails, try to clean the response
+            cleaned_response = response.replace('```json', '').replace('```', '').strip()
+            try:
+                content_data = json.loads(cleaned_response)
+            except:
+                # Final fallback with better content
+                content_data = {
+                    "title": f"{topic.get('keyword', '').title()} - {platform.value.title()} Content",
+                    "description": f"Comprehensive {content_type.value.replace('_', ' ')} about {topic.get('keyword', '')} optimized for {platform.value}. Engaging content that drives audience interaction and blog subscriptions.",
+                    "script": f"Hook: Discover the latest insights about {topic.get('keyword', '')}!\n\nMain content covering key points, trends, and actionable advice.\n\nCall to action: Subscribe to our blog for more exclusive tech insights!",
+                    "hashtags": [topic.get('keyword', '').replace(' ', '').lower(), platform.value, "tech", "trends", "content"]
+                }
         
         return ContentPiece(
             topic_id=topic.get('id', str(uuid.uuid4())),
