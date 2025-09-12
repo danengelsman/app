@@ -181,7 +181,19 @@ class TrendingTopicsAgent(BaseAgent):
         5. Best platforms for this topic
         6. Monetization potential
         
-        Return as a structured JSON array.
+        IMPORTANT: Return ONLY a valid JSON array in this exact format:
+        [
+          {
+            "keyword": "Topic name here",
+            "search_volume": "high",
+            "competition_level": "medium",
+            "virality_score": 8,
+            "platforms": ["youtube", "instagram", "tiktok"],
+            "monetization_potential": "High potential description"
+          }
+        ]
+        
+        Do not include any other text, explanations, or markdown formatting. Return only the JSON array.
         """
         
         user_message = UserMessage(text=prompt)
