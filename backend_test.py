@@ -105,13 +105,65 @@ class MultiAgentSystemTester:
         return success, response
 
     def test_trending_topics(self):
-        """Test trending topics endpoint"""
-        return self.run_test(
+        """Test trending topics endpoint with detailed validation"""
+        success, response = self.run_test(
             "Get Trending Topics",
             "GET",
             "trending-topics",
             200
         )
+        
+        if success and response:
+            topics = response.get('topics', [])
+            print(f"   Found {len(topics)} topics")
+            
+            # Expected fallback topics that should be present
+            expected_topics = [
+                "AI coding assistants", 
+                "Cybersecurity threats 2025", 
+                "Apple Vision Pro review", 
+                "Python automation tools", 
+                "Tech startup funding"
+            ]
+            
+            # Check if we have topics (should no longer be empty)
+            if len(topics) == 0:
+                print("   ❌ No topics found - the bug fix may not be working")
+                return False, response
+            
+            # Validate topic structure
+            for i, topic in enumerate(topics[:3]):  # Check first 3 topics
+                print(f"   Topic {i+1}: {topic.get('keyword', 'No keyword')}")
+                required_fields = ['keyword', 'search_volume', 'competition_level', 'trend_score', 'platforms', 'discovered_date']
+                
+                missing_fields = [field for field in required_fields if field not in topic]
+                if missing_fields:
+                    print(f"   ❌ Missing fields: {missing_fields}")
+                    return False, response
+                
+                # Verify data types
+                if not isinstance(topic.get('search_volume'), int):
+                    print(f"   ❌ search_volume should be int, got {type(topic.get('search_volume'))}")
+                    return False, response
+                
+                if not isinstance(topic.get('trend_score'), (int, float)):
+                    print(f"   ❌ trend_score should be number, got {type(topic.get('trend_score'))}")
+                    return False, response
+            
+            # Check for expected fallback topics
+            found_keywords = [topic.get('keyword', '') for topic in topics]
+            expected_found = sum(1 for expected in expected_topics if expected in found_keywords)
+            
+            print(f"   ✅ Found {expected_found}/{len(expected_topics)} expected fallback topics")
+            
+            if expected_found > 0:
+                print("   ✅ Fallback topics are working correctly")
+            else:
+                print("   ⚠️  No expected fallback topics found, but topics exist")
+            
+            return True, response
+        
+        return success, response
 
     def test_content_library(self):
         """Test content library endpoint"""
