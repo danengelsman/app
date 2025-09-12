@@ -761,9 +761,22 @@ Full thread with detailed analysis...`,
 
           {/* Content description */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-3">Description</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-700">Description</h3>
+              <button
+                onClick={() => setShowFullContent(!showFullContent)}
+                className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+              >
+                {showFullContent ? 'Hide Full Content' : 'View Full Content'}
+              </button>
+            </div>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-gray-700 whitespace-pre-wrap">{cleanContent(selectedContent.description)}</p>
+              <p className="text-gray-700 whitespace-pre-wrap">
+                {showFullContent 
+                  ? (selectedContent.script || cleanContent(selectedContent.description) || 'No content available')
+                  : cleanContent(selectedContent.description)
+                }
+              </p>
             </div>
           </div>
 
