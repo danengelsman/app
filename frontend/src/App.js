@@ -366,13 +366,22 @@ const TrendingTopics = () => {
 
           {/* Action buttons */}
           <div className="flex flex-wrap gap-3 pt-6 border-t">
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <button 
+              onClick={handleGenerateContent}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
               Generate Content for This Topic
             </button>
-            <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+            <button 
+              onClick={handleAddToCalendar}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            >
               Add to Content Calendar
             </button>
-            <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <button 
+              onClick={handleExportTopic}
+              className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
               Export Topic Data
             </button>
           </div>
