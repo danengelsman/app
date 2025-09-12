@@ -254,6 +254,33 @@ const TrendingTopics = () => {
     }
   };
 
+  const handleGenerateContent = () => {
+    alert(`Generating content for topic: "${selectedTopic.keyword}"\n\nThis would typically trigger the content creation workflow for this specific topic across multiple platforms.`);
+    // In a real app, this would call the content generation API
+  };
+
+  const handleAddToCalendar = () => {
+    const calendarDate = prompt('Enter date to add to content calendar (YYYY-MM-DD):');
+    if (calendarDate) {
+      alert(`Topic "${selectedTopic.keyword}" added to content calendar for ${calendarDate}`);
+      // In a real app, this would integrate with calendar/scheduling system
+    }
+  };
+
+  const handleExportTopic = () => {
+    const dataStr = JSON.stringify(selectedTopic, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `topic-${selectedTopic.keyword.replace(/\s+/g, '-').toLowerCase()}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    alert('Topic data exported as JSON file!');
+  };
+
   const handleTopicClick = (topic) => {
     setSelectedTopic(topic);
   };
