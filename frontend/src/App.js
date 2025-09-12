@@ -680,7 +680,7 @@ Full thread with detailed analysis...`,
           {/* Content header */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{selectedContent.title}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{cleanTitle(selectedContent.title)}</h1>
               <div className="flex gap-2">
                 <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
                   {selectedContent.platform}
@@ -704,7 +704,7 @@ Full thread with detailed analysis...`,
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-3">Description</h3>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-gray-700 whitespace-pre-wrap">{selectedContent.description}</p>
+              <p className="text-gray-700 whitespace-pre-wrap">{cleanContent(selectedContent.description)}</p>
             </div>
           </div>
 
