@@ -268,6 +268,15 @@ class MinimaxClient:
                 if response.status == 200:
                     result = await response.json()
                     
+                    # Check for API errors
+                    base_resp = result.get("base_resp", {})
+                    if base_resp.get("status_code") != 0:
+                        error_msg = base_resp.get("status_msg", "Unknown API error")
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Minimax API error: {error_msg}"
+                        )
+                    
                     job = VoiceCloneJob(
                         job_id=f"clone_{voice_id}_{int(datetime.now().timestamp())}",
                         voice_id=voice_id,
@@ -276,11 +285,16 @@ class MinimaxClient:
                         created_at=datetime.now()
                     )
                     
-                    # Extract preview URL if available
-                    if "preview_url" in result:
-                        job.preview_url = result["preview_url"]
-                    elif "audio_url" in result:
-                        job.preview_url = result["audio_url"]
+                    # Extract preview URL from correct fields
+                    preview_url = (
+                        result.get("demo_audio") or 
+                        result.get("preview_url") or 
+                        result.get("audio_url") or
+                        result.get("audio_file")
+                    )
+                    
+                    if preview_url:
+                        job.preview_url = preview_url
                     
                     self.jobs[job.job_id] = job
                     logger.info(f"Voice clone created: {voice_id}")
