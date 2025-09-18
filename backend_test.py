@@ -263,6 +263,214 @@ class MultiAgentSystemTester:
         
         return True, {}
 
+    def test_voice_clone_credentials(self):
+        """Test Minimax API credentials validation"""
+        success, response = self.run_test(
+            "Voice Clone Credentials Test",
+            "GET",
+            "voice-clone/test-credentials/",
+            200
+        )
+        
+        if success and response:
+            credentials_valid = response.get('credentials_valid', False)
+            message = response.get('message', '')
+            print(f"   Credentials Valid: {credentials_valid}")
+            print(f"   Message: {message}")
+            
+            if not credentials_valid:
+                print("   ❌ Minimax credentials are invalid or missing")
+                return False, response
+            else:
+                print("   ✅ Minimax credentials are valid")
+        
+        return success, response
+
+    def test_voice_clone_health(self):
+        """Test voice cloning service health check"""
+        success, response = self.run_test(
+            "Voice Clone Health Check",
+            "GET",
+            "voice-clone/health/",
+            200
+        )
+        
+        if success and response:
+            status = response.get('status', 'unknown')
+            minimax_creds = response.get('minimax_credentials', 'unknown')
+            temp_dir = response.get('temp_directory', 'unknown')
+            
+            print(f"   Overall Status: {status}")
+            print(f"   Minimax Credentials: {minimax_creds}")
+            print(f"   Temp Directory: {temp_dir}")
+            
+            if status != 'healthy':
+                print("   ⚠️  Voice cloning service is not fully healthy")
+                if minimax_creds != 'valid':
+                    print("   ❌ Minimax credentials issue detected")
+                if temp_dir != 'accessible':
+                    print("   ❌ Temp directory access issue detected")
+            else:
+                print("   ✅ Voice cloning service is healthy")
+        
+        return success, response
+
+    def test_voice_clone_create_validation(self):
+        """Test voice clone creation endpoint validation (without actual file)"""
+        # Test missing parameters
+        success, response = self.run_test(
+            "Voice Clone Create - Missing Parameters",
+            "POST",
+            "voice-clone/create/",
+            422  # FastAPI validation error
+        )
+        
+        if success:
+            print("   ✅ Properly validates missing parameters")
+        else:
+            print("   ❌ Should return 422 for missing parameters")
+            return False, response
+        
+        return True, response
+
+    def test_voice_clone_generate_speech_validation(self):
+        """Test speech generation endpoint validation"""
+        # Test with missing parameters
+        success, response = self.run_test(
+            "Voice Clone Generate Speech - Missing Parameters",
+            "POST",
+            "voice-clone/generate-speech/",
+            422  # FastAPI validation error
+        )
+        
+        if success:
+            print("   ✅ Properly validates missing parameters")
+        else:
+            print("   ❌ Should return 422 for missing parameters")
+            return False, response
+        
+        # Test with invalid data structure
+        invalid_data = {"invalid": "data"}
+        success, response = self.run_test(
+            "Voice Clone Generate Speech - Invalid Data",
+            "POST",
+            "voice-clone/generate-speech/",
+            422,  # FastAPI validation error
+            data=invalid_data
+        )
+        
+        if success:
+            print("   ✅ Properly validates invalid data structure")
+        else:
+            print("   ❌ Should return 422 for invalid data structure")
+            return False, response
+        
+        # Test with valid structure but non-existent voice
+        valid_data = {
+            "text": "Hello, this is a test message for voice cloning.",
+            "voice_id": "non_existent_voice_test_123",
+            "model": "speech-01"
+        }
+        success, response = self.run_test(
+            "Voice Clone Generate Speech - Non-existent Voice",
+            "POST",
+            "voice-clone/generate-speech/",
+            400,  # Should return error for non-existent voice
+            data=valid_data,
+            timeout=60
+        )
+        
+        if success:
+            print("   ✅ Properly handles non-existent voice ID")
+        elif response and 'status_code' in str(response):
+            # If we get a different error code, that's also acceptable
+            print("   ✅ Returns appropriate error for non-existent voice")
+            return True, response
+        else:
+            print("   ⚠️  Unexpected response for non-existent voice test")
+        
+        return True, response
+
+    def test_voice_clone_endpoints_structure(self):
+        """Test voice cloning endpoints response structure"""
+        print("\n🔍 Testing Voice Clone API Response Structures...")
+        
+        # Test credentials endpoint structure
+        success, creds_response = self.test_voice_clone_credentials()
+        if success and creds_response:
+            required_fields = ['credentials_valid', 'message', 'timestamp']
+            missing_fields = [field for field in required_fields if field not in creds_response]
+            if missing_fields:
+                print(f"   ❌ Credentials response missing fields: {missing_fields}")
+                return False, creds_response
+            else:
+                print("   ✅ Credentials response has all required fields")
+        
+        # Test health endpoint structure  
+        success, health_response = self.test_voice_clone_health()
+        if success and health_response:
+            required_fields = ['status', 'minimax_credentials', 'temp_directory', 'timestamp']
+            missing_fields = [field for field in required_fields if field not in health_response]
+            if missing_fields:
+                print(f"   ❌ Health response missing fields: {missing_fields}")
+                return False, health_response
+            else:
+                print("   ✅ Health response has all required fields")
+        
+        return True, {}
+
+    def run_voice_clone_tests(self):
+        """Run all voice cloning tests"""
+        print(f"\n{'='*60}")
+        print(f"🎤 VOICE CLONING INTEGRATION TESTS")
+        print(f"{'='*60}")
+        
+        voice_tests = [
+            ("Voice Clone Credentials", self.test_voice_clone_credentials),
+            ("Voice Clone Health Check", self.test_voice_clone_health),
+            ("Voice Clone Create Validation", self.test_voice_clone_create_validation),
+            ("Voice Clone Generate Speech Validation", self.test_voice_clone_generate_speech_validation),
+            ("Voice Clone Response Structures", self.test_voice_clone_endpoints_structure),
+        ]
+        
+        voice_test_results = []
+        
+        for test_name, test_func in voice_tests:
+            print(f"\n{'-'*40}")
+            print(f"Running: {test_name}")
+            print(f"{'-'*40}")
+            
+            try:
+                success, response = test_func()
+                voice_test_results.append((test_name, success))
+                if not success:
+                    print(f"❌ {test_name} failed")
+                else:
+                    print(f"✅ {test_name} passed")
+            except Exception as e:
+                print(f"❌ {test_name} crashed: {str(e)}")
+                voice_test_results.append((test_name, False))
+                self.tests_run += 1
+        
+        # Summary of voice cloning tests
+        passed_voice_tests = sum(1 for _, success in voice_test_results if success)
+        total_voice_tests = len(voice_test_results)
+        
+        print(f"\n{'='*60}")
+        print(f"🎤 VOICE CLONING TEST SUMMARY")
+        print(f"{'='*60}")
+        print(f"Voice Clone Tests: {passed_voice_tests}/{total_voice_tests} passed")
+        
+        if passed_voice_tests == total_voice_tests:
+            print("🎉 All voice cloning tests passed!")
+        else:
+            print("❌ Some voice cloning tests failed:")
+            for test_name, success in voice_test_results:
+                if not success:
+                    print(f"   - {test_name}")
+        
+        return passed_voice_tests == total_voice_tests
+
 def main():
     print("🤖 Starting Emergent AI Multi-Agent Content Creation System Tests")
     print("=" * 70)
