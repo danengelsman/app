@@ -467,8 +467,8 @@ class CentralOverseerAgent(BaseAgent):
                 "summary": {
                     "topics_discovered": len(topics_result.get("topics", [])),
                     "content_pieces_created": len(content_result.get("content", [])),
-                    "blog_posts_created": len(blog_result.get("posts", [])),
-                    "compliance_approved": len([r for r in compliance_result.get("compliance_results", []) if r.get("approved")])
+                    "blog_posts_created": len(workflow_results.get("blog_writing", {}).get("posts", [])),
+                    "compliance_approved": len([r for r in workflow_results.get("compliance", {}).get("compliance_results", []) if r.get("approved")])
                 }
             }
             
