@@ -509,12 +509,18 @@ def main():
             failed_tests.append(test_name)
             tester.tests_run += 1
     
+    # Run Voice Cloning Tests
+    voice_tests_passed = tester.run_voice_clone_tests()
+    if not voice_tests_passed:
+        failed_tests.append("Voice Cloning Integration")
+    
     # Print final results
     print(f"\n{'='*70}")
-    print(f"🏁 TEST RESULTS SUMMARY")
+    print(f"🏁 COMPLETE TEST RESULTS SUMMARY")
     print(f"{'='*70}")
-    print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
-    print(f"🎯 Success rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
+    print(f"📊 Multi-Agent Tests passed: {tester.tests_passed}/{tester.tests_run}")
+    print(f"🎤 Voice Cloning Tests: {'✅ PASSED' if voice_tests_passed else '❌ FAILED'}")
+    print(f"🎯 Overall Success rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
     
     if tester.workflow_executed:
         print(f"✅ Multi-agent workflow executed successfully")
@@ -522,7 +528,7 @@ def main():
         print(f"❌ Multi-agent workflow failed to execute")
     
     if failed_tests:
-        print(f"\n❌ Failed Tests:")
+        print(f"\n❌ Failed Test Categories:")
         for test in failed_tests:
             print(f"   - {test}")
     else:
@@ -536,8 +542,12 @@ def main():
     print(f"   ✓ Branding consistency")
     print(f"   ✓ Analytics and compliance")
     print(f"   ✓ Monetization strategies")
+    print(f"   ✓ Minimax Voice Cloning Integration")
+    print(f"   ✓ Voice clone credentials validation")
+    print(f"   ✓ Voice cloning health checks")
+    print(f"   ✓ Voice cloning API validation")
     
-    return 0 if tester.tests_passed == tester.tests_run else 1
+    return 0 if (tester.tests_passed == tester.tests_run and voice_tests_passed) else 1
 
 if __name__ == "__main__":
     sys.exit(main())
