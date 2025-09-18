@@ -249,9 +249,10 @@ class MinimaxClient:
         self, 
         text: str, 
         voice_id: str, 
-        model: str = "speech-01"
+        model: str = "speech-01",
+        max_retries: int = 3
     ) -> str:
-        """Generate speech using cloned voice"""
+        """Generate speech using cloned voice with rate limit handling"""
         url = f"{self.base_url}/t2a_pro"
         params = {"GroupId": self.auth.group_id}
         headers = self.auth.get_headers()
@@ -263,42 +264,85 @@ class MinimaxClient:
             "stream": False
         }
         
-        try:
-            async with self.session.post(url, params=params, headers=headers, json=payload) as response:
-                response_text = await response.text()
-                
-                if response.status == 200:
-                    result = await response.json()
+        last_error = None
+        
+        for attempt in range(max_retries):
+            try:
+                async with self.session.post(url, params=params, headers=headers, json=payload) as response:
+                    response_text = await response.text()
                     
-                    # Check for rate limiting or other API errors
-                    base_resp = result.get("base_resp", {})
-                    if base_resp.get("status_code") != 0:
-                        error_msg = base_resp.get("status_msg", "Unknown API error")
+                    if response.status == 200:
+                        result = await response.json()
+                        
+                        # Check for rate limiting or other API errors
+                        base_resp = result.get("base_resp", {})
+                        status_code = base_resp.get("status_code", 0)
+                        error_msg = base_resp.get("status_msg", "")
+                        
+                        if status_code != 0:
+                            # Handle rate limiting specifically
+                            if "rate limit" in error_msg.lower() or status_code == 2053:
+                                if attempt < max_retries - 1:
+                                    wait_time = (2 ** attempt) * 2  # Exponential backoff: 2s, 4s, 8s
+                                    logger.warning(f"Rate limit hit, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                                    await asyncio.sleep(wait_time)
+                                    continue
+                                else:
+                                    raise HTTPException(
+                                        status_code=429,
+                                        detail="MiniMax API rate limit exceeded. Please try again in a few minutes. "
+                                               "The API has daily/hourly usage limits. Consider reducing the frequency of requests."
+                                    )
+                            else:
+                                raise HTTPException(
+                                    status_code=400,
+                                    detail=f"MiniMax API error: {error_msg}"
+                                )
+                        
+                        # Get audio file URL from correct field
+                        audio_url = result.get("audio_file") or result.get("audio_url")
+                        if not audio_url:
+                            logger.error(f"No audio file in response. Response keys: {list(result.keys())}")
+                            raise ValueError("No audio file in response from MiniMax API")
+                        
+                        logger.info(f"Speech generated for voice: {voice_id} (attempt {attempt + 1})")
+                        return audio_url
+                    
+                    elif response.status == 429:
+                        # HTTP 429 rate limit
+                        if attempt < max_retries - 1:
+                            wait_time = (2 ** attempt) * 3  # Exponential backoff: 3s, 6s, 12s
+                            logger.warning(f"HTTP 429 rate limit, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                            await asyncio.sleep(wait_time)
+                            continue
+                        else:
+                            raise HTTPException(
+                                status_code=429,
+                                detail="MiniMax API is currently rate limiting requests. Please try again in 5-10 minutes. "
+                                       "This is a temporary limitation from the API provider."
+                            )
+                    else:
+                        logger.error(f"Speech generation failed: {response.status} - {response_text}")
                         raise HTTPException(
-                            status_code=429 if "rate limit" in error_msg.lower() else 400,
-                            detail=f"Minimax API error: {error_msg}"
+                            status_code=response.status,
+                            detail=f"Speech generation failed: {response_text}"
                         )
-                    
-                    # Get audio file URL from correct field
-                    audio_url = result.get("audio_file") or result.get("audio_url")
-                    if not audio_url:
-                        logger.error(f"No audio file in response. Response keys: {list(result.keys())}")
-                        raise ValueError("No audio file in response from Minimax API")
-                    
-                    logger.info(f"Speech generated for voice: {voice_id}")
-                    return audio_url
-                else:
-                    logger.error(f"Speech generation failed: {response.status} - {response_text}")
-                    raise HTTPException(
-                        status_code=response.status,
-                        detail=f"Speech generation failed: {response_text}"
-                    )
-                    
-        except Exception as e:
-            logger.error(f"Speech generation error: {str(e)}")
-            if isinstance(e, HTTPException):
+                        
+            except HTTPException:
                 raise
-            raise HTTPException(status_code=500, detail=f"Speech generation error: {str(e)}")
+            except Exception as e:
+                last_error = e
+                if attempt < max_retries - 1:
+                    wait_time = (2 ** attempt) * 1  # 1s, 2s, 4s
+                    logger.warning(f"Request failed, retrying in {wait_time}s: {str(e)}")
+                    await asyncio.sleep(wait_time)
+                    continue
+                else:
+                    logger.error(f"Speech generation error after {max_retries} attempts: {str(e)}")
+                    raise HTTPException(status_code=500, detail=f"Speech generation failed after multiple attempts: {str(e)}")
+        
+        # This shouldn't be reached, but just in case
+        raise HTTPException(status_code=500, detail=f"Unexpected error after {max_retries} attempts: {str(last_error)}")
     
     def _get_content_type(self, file_extension: str) -> str:
         """Get content type based on file extension"""
