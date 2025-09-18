@@ -1485,6 +1485,12 @@ const Navigation = () => {
             >
               Branding
             </Link>
+            <Link 
+              to="/voice-cloning" 
+              className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Voice Cloning
+            </Link>
           </div>
 
           {/* Mobile menu button */}
