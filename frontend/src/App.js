@@ -978,7 +978,26 @@ const VoiceCloning = () => {
     if (savedVoices) {
       setClonedVoices(JSON.parse(savedVoices));
     }
+    
+    // Check rate limit status on component mount
+    checkRateLimitStatus();
   }, []);
+
+  const checkRateLimitStatus = async () => {
+    setCheckingRateLimit(true);
+    try {
+      const response = await axios.get(`${API}/voice-clone/rate-limit-status/`);
+      setRateLimitStatus(response.data);
+    } catch (error) {
+      console.error('Rate limit status check failed:', error);
+      setRateLimitStatus({
+        rate_limit_status: 'UNKNOWN',
+        message: 'Unable to check rate limit status'
+      });
+    } finally {
+      setCheckingRateLimit(false);
+    }
+  };
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
