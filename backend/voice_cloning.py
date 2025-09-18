@@ -220,9 +220,18 @@ class MinimaxClient:
             async with self.session.post(url, params=params, headers=headers, data=data) as response:
                 if response.status == 200:
                     result = await response.json()
-                    file_id = result.get("file_id")
+                    
+                    # Try different possible response structures
+                    file_id = (
+                        result.get("file_id") or 
+                        result.get("file", {}).get("file_id") or
+                        result.get("data", {}).get("file_id")
+                    )
+                    
                     if not file_id:
-                        raise ValueError("No file_id in response")
+                        logger.error(f"No file_id in response. Response keys: {list(result.keys()) if isinstance(result, dict) else type(result)}")
+                        logger.error(f"Full response: {result}")
+                        raise ValueError("No file_id in response from Minimax API")
                     
                     logger.info(f"File uploaded successfully: {file_id}")
                     return file_id
