@@ -1181,15 +1181,32 @@ const VoiceCloning = () => {
         )}
 
         {result && (
-          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <h3 className="font-semibold text-green-800 mb-2">Voice Clone Created Successfully!</h3>
-            <div className="space-y-2 text-sm text-green-700">
+          <div className={`mt-6 p-4 border rounded-lg ${
+            result.status === 'completed' ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
+          }`}>
+            <h3 className={`font-semibold mb-2 ${
+              result.status === 'completed' ? 'text-green-800' : 'text-yellow-800'
+            }`}>
+              {result.status === 'completed' ? 'Voice Clone Registered!' : 'Voice Clone Status'}
+            </h3>
+            <div className={`space-y-2 text-sm ${
+              result.status === 'completed' ? 'text-green-700' : 'text-yellow-700'
+            }`}>
               <p><strong>Voice ID:</strong> {result.voice_id}</p>
               <p><strong>Job ID:</strong> {result.job_id}</p>
               <p><strong>Status:</strong> {result.status}</p>
+              {result.message && result.message.includes('API changes') && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                  <p className="text-blue-800 text-sm">
+                    <strong>ℹ️ Important:</strong> MiniMax has updated their voice cloning system. 
+                    While file uploads are currently unavailable, your voice ID has been registered 
+                    and you can use it with the speech generation feature below.
+                  </p>
+                </div>
+              )}
               {result.preview_audio_url && (
                 <div className="mt-3">
-                  <p className="font-medium mb-2">Preview Audio:</p>
+                  <p className="font-medium mb-2">Demo Audio (using default voice):</p>
                   <audio controls className="w-full">
                     <source src={result.preview_audio_url} type="audio/mpeg" />
                     Your browser does not support the audio element.
