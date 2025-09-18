@@ -1308,7 +1308,12 @@ const VoiceCloning = () => {
 
         {generatedAudio && (
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h3 className="font-semibold text-blue-800 mb-2">Speech Generated Successfully!</h3>
+            <h3 className="font-semibold text-blue-800 mb-2">Speech Generated!</h3>
+            {generatedAudio.status && (
+              <div className="mb-3 text-sm text-blue-700">
+                <p>{generatedAudio.status}</p>
+              </div>
+            )}
             <div className="mt-3">
               <p className="font-medium mb-2 text-blue-700">Generated Audio:</p>
               <audio controls className="w-full">
