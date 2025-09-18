@@ -969,6 +969,8 @@ const VoiceCloning = () => {
   const [generatedAudio, setGeneratedAudio] = useState(null);
   const [generatingAudio, setGeneratingAudio] = useState(false);
   const [clonedVoices, setClonedVoices] = useState([]);
+  const [rateLimitStatus, setRateLimitStatus] = useState(null);
+  const [checkingRateLimit, setCheckingRateLimit] = useState(false);
 
   useEffect(() => {
     // Load any previously created voices from localStorage
