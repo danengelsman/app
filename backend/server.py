@@ -654,6 +654,129 @@ async def get_analytics_dashboard():
         "last_updated": datetime.utcnow().isoformat()
     }
 
+# Voice Cloning Endpoints
+@api_router.post("/voice-clone/create/", response_model=VoiceCloneResponse)
+async def create_voice_clone(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(..., description="Audio file for voice cloning (MP3, M4A, WAV)"),
+    voice_id: str = Form(..., description="Unique identifier for the voice"),
+    preview_text: Optional[str] = Form(None, description="Text to generate preview audio"),
+    model: str = Form("speech-01", description="Model to use for voice cloning")
+):
+    """Create a new voice clone from uploaded audio file"""
+    try:
+        # Create voice clone
+        job = await voice_clone_manager.create_voice_clone_from_upload(
+            file=file,
+            voice_id=voice_id,
+            preview_text=preview_text,
+            model=model
+        )
+        
+        # Schedule cleanup of old files
+        background_tasks.add_task(voice_clone_manager.cleanup_old_files)
+        
+        return VoiceCloneResponse(
+            voice_id=job.voice_id,
+            file_id=job.file_id or "unknown",
+            status=job.status.value,
+            message="Voice clone created successfully",
+            preview_audio_url=job.preview_url,
+            job_id=job.job_id
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Voice clone creation error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create voice clone: {str(e)}"
+        )
+
+@api_router.post("/voice-clone/generate-speech/", response_model=TTSResponse)
+async def generate_speech_with_clone(tts_request: TTSRequest):
+    """Generate speech using a previously created voice clone"""
+    try:
+        audio_url = await voice_clone_manager.generate_speech_with_voice(
+            text=tts_request.text,
+            voice_id=tts_request.voice_id,
+            model=tts_request.model
+        )
+        
+        return TTSResponse(
+            audio_url=audio_url,
+            status="completed"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Speech generation error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate speech: {str(e)}"
+        )
+
+@api_router.get("/voice-clone/test-credentials/")
+async def test_voice_clone_credentials():
+    """Test Minimax API credentials"""
+    try:
+        is_valid = await voice_clone_manager.validate_credentials()
+        
+        return {
+            "credentials_valid": is_valid,
+            "message": "Credentials are valid" if is_valid else "Invalid or missing credentials",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Credential test error: {str(e)}")
+        return {
+            "credentials_valid": False,
+            "message": f"Error testing credentials: {str(e)}",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+@api_router.get("/voice-clone/health/")
+async def voice_clone_health_check():
+    """Health check for voice cloning service"""
+    try:
+        # Test credentials
+        credentials_valid = await voice_clone_manager.validate_credentials()
+        
+        # Check temp directory
+        temp_dir = Path("temp_uploads")
+        temp_dir_exists = temp_dir.exists()
+        temp_dir_writable = False
+        
+        if temp_dir_exists:
+            try:
+                test_file = temp_dir / "health_check.txt"
+                test_file.write_text("test")
+                temp_dir_writable = test_file.exists()
+                if test_file.exists():
+                    test_file.unlink()
+            except Exception:
+                pass
+        
+        health_status = {
+            "status": "healthy" if (credentials_valid and temp_dir_writable) else "unhealthy",
+            "minimax_credentials": "valid" if credentials_valid else "invalid",
+            "temp_directory": "accessible" if temp_dir_writable else "not accessible",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        return health_status
+        
+    except Exception as e:
+        logger.error(f"Voice clone health check failed: {str(e)}")
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
 # Include the router in the main app
 app.include_router(api_router)
 
