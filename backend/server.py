@@ -720,7 +720,9 @@ async def generate_speech_with_clone(tts_request: TTSRequest):
 async def test_voice_clone_credentials():
     """Test Minimax API credentials"""
     try:
-        is_valid = await voice_clone_manager.validate_credentials()
+        # Get voice clone manager
+        manager = get_voice_clone_manager()
+        is_valid = await manager.validate_credentials()
         
         return {
             "credentials_valid": is_valid,
