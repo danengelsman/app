@@ -742,8 +742,9 @@ async def test_voice_clone_credentials():
 async def voice_clone_health_check():
     """Health check for voice cloning service"""
     try:
-        # Test credentials
-        credentials_valid = await voice_clone_manager.validate_credentials()
+        # Get voice clone manager and test credentials
+        manager = get_voice_clone_manager()
+        credentials_valid = await manager.validate_credentials()
         
         # Check temp directory
         temp_dir = Path("temp_uploads")
