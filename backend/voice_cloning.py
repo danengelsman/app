@@ -386,9 +386,31 @@ class VoiceCloneManager:
         voice_id: str,
         model: str = "speech-01"
     ) -> str:
-        """Generate speech using a cloned voice"""
+        """Generate speech using a cloned voice or default voice"""
         async with MinimaxClient(self.auth) as client:
-            return await client.generate_speech(text, voice_id, model)
+            try:
+                return await client.generate_speech(text, voice_id, model)
+            except HTTPException as e:
+                # If custom voice doesn't exist, try with default voice
+                if "voice id not exist" in str(e.detail).lower():
+                    logger.warning(f"Custom voice {voice_id} not found, trying default voice")
+                    default_voice = "male-qn-qingse"  # Use default voice
+                    try:
+                        audio_url = await client.generate_speech(text, default_voice, model)
+                        # Add note about using default voice
+                        raise HTTPException(
+                            status_code=200,
+                            detail=f"Generated speech using default voice '{default_voice}' instead of '{voice_id}'. "
+                                   f"Custom voice cloning is currently limited due to API changes. Audio URL: {audio_url}"
+                        )
+                    except Exception as fallback_error:
+                        raise HTTPException(
+                            status_code=503,
+                            detail=f"Both custom voice '{voice_id}' and default voice failed. "
+                                   f"MiniMax API may be experiencing issues. Error: {str(fallback_error)}"
+                        )
+                else:
+                    raise e
     
     async def cleanup_old_files(self):
         """Clean up old temporary files"""
