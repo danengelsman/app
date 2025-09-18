@@ -958,6 +958,378 @@ Full thread with detailed analysis...`,
   );
 };
 
+const VoiceCloning = () => {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [voiceId, setVoiceId] = useState('');
+  const [previewText, setPreviewText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [generateText, setGenerateText] = useState('');
+  const [generatedAudio, setGeneratedAudio] = useState(null);
+  const [generatingAudio, setGeneratingAudio] = useState(false);
+  const [clonedVoices, setClonedVoices] = useState([]);
+
+  useEffect(() => {
+    // Load any previously created voices from localStorage
+    const savedVoices = localStorage.getItem('clonedVoices');
+    if (savedVoices) {
+      setClonedVoices(JSON.parse(savedVoices));
+    }
+  }, []);
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setError(null);
+    }
+  };
+
+  const handleCreateVoiceClone = async (event) => {
+    event.preventDefault();
+    
+    if (!selectedFile || !voiceId.trim()) {
+      setError('Please select an audio file and provide a voice ID');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('voice_id', voiceId.trim());
+      if (previewText.trim()) {
+        formData.append('preview_text', previewText.trim());
+      }
+      formData.append('model', 'speech-01');
+
+      const response = await axios.post(`${API}/voice-clone/create/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 60000, // 60 second timeout for file upload
+      });
+
+      setResult(response.data);
+      
+      // Save to cloned voices list
+      const newVoice = {
+        voice_id: response.data.voice_id,
+        created_at: new Date().toISOString(),
+        preview_url: response.data.preview_audio_url
+      };
+      
+      const updatedVoices = [...clonedVoices, newVoice];
+      setClonedVoices(updatedVoices);
+      localStorage.setItem('clonedVoices', JSON.stringify(updatedVoices));
+      
+      // Reset form
+      setSelectedFile(null);
+      setVoiceId('');
+      setPreviewText('');
+      
+      // Reset file input
+      const fileInput = document.getElementById('audio-file');
+      if (fileInput) {
+        fileInput.value = '';
+      }
+
+    } catch (error) {
+      console.error('Voice cloning error:', error);
+      if (error.response?.data?.detail) {
+        setError(error.response.data.detail);
+      } else {
+        setError('Failed to create voice clone. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateSpeech = async (event) => {
+    event.preventDefault();
+    
+    if (!generateText.trim()) {
+      setError('Please enter text to generate speech');
+      return;
+    }
+
+    const selectedVoiceId = document.getElementById('voice-select').value;
+    if (!selectedVoiceId) {
+      setError('Please select a voice');
+      return;
+    }
+
+    setGeneratingAudio(true);
+    setError(null);
+    setGeneratedAudio(null);
+
+    try {
+      const response = await axios.post(`${API}/voice-clone/generate-speech/`, {
+        text: generateText.trim(),
+        voice_id: selectedVoiceId,
+        model: 'speech-01'
+      }, {
+        timeout: 30000 // 30 second timeout
+      });
+
+      setGeneratedAudio(response.data);
+
+    } catch (error) {
+      console.error('Speech generation error:', error);
+      if (error.response?.data?.detail) {
+        setError(error.response.data.detail);
+      } else {
+        setError('Failed to generate speech. Please try again.');
+      }
+    } finally {
+      setGeneratingAudio(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-lg">
+        <h1 className="text-3xl font-bold mb-2">Voice Cloning Studio</h1>
+        <p className="text-purple-100">Create custom voice clones for YouTube content generation</p>
+      </div>
+
+      {/* Voice Clone Creation */}
+      <div className="bg-white p-6 rounded-lg shadow-lg border">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Create Voice Clone</h2>
+        
+        <form onSubmit={handleCreateVoiceClone} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Audio Sample *
+            </label>
+            <input
+              id="audio-file"
+              type="file"
+              accept=".mp3,.wav,.m4a"
+              onChange={handleFileSelect}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Supported formats: MP3, WAV, M4A | Duration: 10s-5min | Max size: 20MB
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Voice ID *
+            </label>
+            <input
+              type="text"
+              value={voiceId}
+              onChange={(e) => setVoiceId(e.target.value)}
+              placeholder="e.g., my_voice_v1"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Unique identifier for your voice (letters, numbers, underscores, hyphens only)
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Preview Text (Optional)
+            </label>
+            <textarea
+              value={previewText}
+              onChange={(e) => setPreviewText(e.target.value)}
+              placeholder="Enter text to generate a preview with the cloned voice..."
+              rows={3}
+              maxLength={300}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {previewText.length}/300 characters
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-3 px-4 rounded-lg font-semibold text-white ${
+              loading
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
+            } transition-colors`}
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Creating Voice Clone...
+              </div>
+            ) : (
+              'Create Voice Clone'
+            )}
+          </button>
+        </form>
+
+        {error && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600">{error}</p>
+          </div>
+        )}
+
+        {result && (
+          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h3 className="font-semibold text-green-800 mb-2">Voice Clone Created Successfully!</h3>
+            <div className="space-y-2 text-sm text-green-700">
+              <p><strong>Voice ID:</strong> {result.voice_id}</p>
+              <p><strong>Job ID:</strong> {result.job_id}</p>
+              <p><strong>Status:</strong> {result.status}</p>
+              {result.preview_audio_url && (
+                <div className="mt-3">
+                  <p className="font-medium mb-2">Preview Audio:</p>
+                  <audio controls className="w-full">
+                    <source src={result.preview_audio_url} type="audio/mpeg" />
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Speech Generation */}
+      <div className="bg-white p-6 rounded-lg shadow-lg border">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Generate Speech</h2>
+        
+        {clonedVoices.length === 0 ? (
+          <div className="text-center py-8 bg-gray-50 rounded-lg">
+            <p className="text-gray-500">No voice clones available. Create a voice clone first!</p>
+          </div>
+        ) : (
+          <form onSubmit={handleGenerateSpeech} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Voice *
+              </label>
+              <select
+                id="voice-select"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              >
+                <option value="">Choose a voice...</option>
+                {clonedVoices.map((voice, index) => (
+                  <option key={index} value={voice.voice_id}>
+                    {voice.voice_id} (Created: {new Date(voice.created_at).toLocaleDateString()})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Text to Generate *
+              </label>
+              <textarea
+                value={generateText}
+                onChange={(e) => setGenerateText(e.target.value)}
+                placeholder="Enter the text you want to convert to speech..."
+                rows={4}
+                maxLength={1000}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {generateText.length}/1000 characters
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={generatingAudio}
+              className={`w-full py-3 px-4 rounded-lg font-semibold text-white ${
+                generatingAudio
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-green-600 hover:bg-green-700'
+              } transition-colors`}
+            >
+              {generatingAudio ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Generating Speech...
+                </div>
+              ) : (
+                'Generate Speech'
+              )}
+            </button>
+          </form>
+        )}
+
+        {generatedAudio && (
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h3 className="font-semibold text-blue-800 mb-2">Speech Generated Successfully!</h3>
+            <div className="mt-3">
+              <p className="font-medium mb-2 text-blue-700">Generated Audio:</p>
+              <audio controls className="w-full">
+                <source src={generatedAudio.audio_url} type="audio/mpeg" />
+                Your browser does not support the audio element.
+              </audio>
+              <div className="mt-3 flex gap-2">
+                <a
+                  href={generatedAudio.audio_url}
+                  download="generated_speech.mp3"
+                  className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Download Audio
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Cloned Voices Management */}
+      {clonedVoices.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow-lg border">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Your Voice Clones</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {clonedVoices.map((voice, index) => (
+              <div key={index} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-gray-700">{voice.voice_id}</h3>
+                  <button
+                    onClick={() => {
+                      const updatedVoices = clonedVoices.filter((_, i) => i !== index);
+                      setClonedVoices(updatedVoices);
+                      localStorage.setItem('clonedVoices', JSON.stringify(updatedVoices));
+                    }}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+                <p className="text-sm text-gray-500 mb-3">
+                  Created: {new Date(voice.created_at).toLocaleDateString()}
+                </p>
+                {voice.preview_url && (
+                  <audio controls className="w-full">
+                    <source src={voice.preview_url} type="audio/mpeg" />
+                    Your browser does not support the audio element.
+                  </audio>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const BrandingKit = () => {
   const [branding, setBranding] = useState(null);
   const [loading, setLoading] = useState(true);
