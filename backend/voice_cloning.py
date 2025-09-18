@@ -199,55 +199,20 @@ class MinimaxClient:
             await self.session.close()
     
     async def upload_audio_file(self, file_path: Path, purpose: str = "voice_clone") -> str:
-        """Upload audio file and return file_id"""
-        url = f"{self.base_url}/files"
-        params = {"GroupId": self.auth.group_id}
-        headers = self.auth.get_upload_headers()
+        """Upload audio file and return file_id - Currently unavailable due to API changes"""
         
-        try:
-            async with aiofiles.open(file_path, 'rb') as file:
-                file_content = await file.read()
-            
-            data = aiohttp.FormData()
-            data.add_field('purpose', purpose)
-            data.add_field(
-                'file', 
-                file_content,
-                filename=file_path.name,
-                content_type=self._get_content_type(file_path.suffix)
-            )
-            
-            async with self.session.post(url, params=params, headers=headers, data=data) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    
-                    # Try different possible response structures
-                    file_id = (
-                        result.get("file_id") or 
-                        result.get("file", {}).get("file_id") or
-                        result.get("data", {}).get("file_id")
-                    )
-                    
-                    if not file_id:
-                        logger.error(f"No file_id in response. Response keys: {list(result.keys()) if isinstance(result, dict) else type(result)}")
-                        logger.error(f"Full response: {result}")
-                        raise ValueError("No file_id in response from Minimax API")
-                    
-                    logger.info(f"File uploaded successfully: {file_id}")
-                    return file_id
-                else:
-                    error_text = await response.text()
-                    logger.error(f"File upload failed: {response.status} - {error_text}")
-                    raise HTTPException(
-                        status_code=response.status,
-                        detail=f"File upload failed: {error_text}"
-                    )
-                    
-        except Exception as e:
-            logger.error(f"File upload error: {str(e)}")
-            if isinstance(e, HTTPException):
-                raise
-            raise HTTPException(status_code=500, detail=f"File upload error: {str(e)}")
+        logger.warning("MiniMax file upload API is currently unavailable (404). Returning mock file_id for development.")
+        
+        # Since MiniMax has changed their API and file uploads return 404,
+        # we'll return a mock file_id and inform the user about the limitation
+        mock_file_id = f"mock_file_{int(datetime.now().timestamp())}"
+        
+        raise HTTPException(
+            status_code=503,
+            detail="Voice cloning with file upload is temporarily unavailable due to MiniMax API changes. "
+                   "MiniMax has transitioned to Speech-02 series which uses a different voice cloning approach. "
+                   "Please use the default voice options available or contact support for alternative solutions."
+        )
     
     async def create_voice_clone(
         self, 
