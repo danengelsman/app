@@ -423,5 +423,12 @@ class VoiceCloneManager:
         """Clean up old temporary files"""
         await self.audio_handler.cleanup_old_files()
 
-# Global instance
-voice_clone_manager = VoiceCloneManager()
+# Global instance - will be initialized lazily
+voice_clone_manager = None
+
+def get_voice_clone_manager() -> VoiceCloneManager:
+    """Get or create the voice clone manager instance"""
+    global voice_clone_manager
+    if voice_clone_manager is None:
+        voice_clone_manager = VoiceCloneManager()
+    return voice_clone_manager
