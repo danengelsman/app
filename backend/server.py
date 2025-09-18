@@ -566,10 +566,20 @@ async def get_blog_posts(limit: int = 10):
 
 @api_router.get("/analytics/detailed")
 async def get_detailed_analytics():
-    """Get detailed analytics from analytics agent"""
+    """Get detailed analytics (simplified after rollback)"""
     try:
-        analytics_agent = AnalyticsAgent()
-        result = await analytics_agent.execute_task({})
+        # Simplified analytics without extended agents
+        content_count = await db.content_pieces.count_documents({})
+        topics_count = await db.trending_topics.count_documents({})
+        
+        result = {
+            "status": "success",
+            "analytics": {
+                "total_content_pieces": content_count,
+                "total_trending_topics": topics_count,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        }
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
