@@ -413,12 +413,13 @@ class CentralOverseerAgent(BaseAgent):
             "trending_topics": TrendingTopicsAgent(),
             "topic_selector": TopicSelectorAgent(),
             "brand_ambassador": BrandAmbassadorAgent(),
-            "auditor_optimizer": AuditorOptimizerAgent(),
-            "monetization": MonetizationAgent(),
-            "blog_writer": BlogWriterAgent(),
-            "content_generator": ContentGeneratorAgent(),
-            "analytics": AnalyticsAgent(),
-            "compliance": ComplianceAgent()
+            # Extended agents commented out after rollback
+            # "auditor_optimizer": AuditorOptimizerAgent(),
+            # "monetization": MonetizationAgent(),
+            # "blog_writer": BlogWriterAgent(),
+            # "content_generator": ContentGeneratorAgent(),
+            # "analytics": AnalyticsAgent(),
+            # "compliance": ComplianceAgent()
         }
 
     async def execute_full_workflow(self) -> Dict[str, Any]:
