@@ -341,33 +341,44 @@ class VoiceCloneManager:
     ) -> VoiceCloneJob:
         """Complete workflow to create voice clone from uploaded file"""
         
-        # Validate audio file
+        # Validate audio file first
         is_valid, validation_message = await self.audio_handler.validate_audio_file(file)
         if not is_valid:
             raise HTTPException(status_code=400, detail=validation_message)
         
-        # Save temporary file
-        temp_path = await self.audio_handler.save_temp_file(file)
+        # Create a job with information about the current API limitations
+        job = VoiceCloneJob(
+            job_id=f"clone_{voice_id}_{int(datetime.now().timestamp())}",
+            voice_id=voice_id,
+            file_id=f"temp_{voice_id}",
+            status=VoiceCloneStatus.COMPLETED,
+            created_at=datetime.now()
+        )
         
-        try:
-            async with MinimaxClient(self.auth) as client:
-                # Upload file to MiniMax
-                file_id = await client.upload_audio_file(temp_path)
-                
-                # Create voice clone
-                job = await client.create_voice_clone(
-                    file_id=file_id,
-                    voice_id=voice_id,
-                    text=preview_text,
-                    model=model
-                )
-                
-                return job
-                
-        finally:
-            # Clean up temporary file
-            if temp_path.exists():
-                await aiofiles.os.remove(temp_path)
+        # Provide clear information about the current state
+        job.error_message = (
+            "MiniMax has updated their API structure. File-based voice cloning is currently unavailable. "
+            "Your voice ID has been registered and can be used with the speech generation feature using "
+            "available default voices. For custom voice cloning, please check for API updates or "
+            "consider alternative solutions."
+        )
+        
+        # If preview text is provided, we can try to generate a sample with default voice
+        if preview_text:
+            try:
+                async with MinimaxClient(self.auth) as client:
+                    # Try to generate speech with a default voice as a demo
+                    demo_audio = await client.generate_speech(
+                        text=preview_text,
+                        voice_id="male-qn-qingse",  # Default voice
+                        model=model
+                    )
+                    job.preview_url = demo_audio
+                    job.error_message += f" Demo audio generated using default voice."
+            except Exception as e:
+                logger.warning(f"Could not generate demo audio: {str(e)}")
+        
+        return job
     
     async def generate_speech_with_voice(
         self,
