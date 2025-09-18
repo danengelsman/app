@@ -696,17 +696,33 @@ async def generate_speech_with_clone(tts_request: TTSRequest):
         # Get voice clone manager
         manager = get_voice_clone_manager()
         
-        audio_url = await manager.generate_speech_with_voice(
-            text=tts_request.text,
-            voice_id=tts_request.voice_id,
-            model=tts_request.model
-        )
-        
-        return TTSResponse(
-            audio_url=audio_url,
-            status="completed"
-        )
-        
+        try:
+            audio_url = await manager.generate_speech_with_voice(
+                text=tts_request.text,
+                voice_id=tts_request.voice_id,
+                model=tts_request.model
+            )
+            
+            return TTSResponse(
+                audio_url=audio_url,
+                status="completed"
+            )
+            
+        except HTTPException as e:
+            # Handle the special case where we return 200 with message about default voice
+            if e.status_code == 200 and "Audio URL:" in e.detail:
+                # Extract audio URL from the message
+                detail_parts = e.detail.split("Audio URL: ")
+                if len(detail_parts) > 1:
+                    audio_url = detail_parts[1].strip()
+                    message = detail_parts[0].strip()
+                    
+                    return TTSResponse(
+                        audio_url=audio_url,
+                        status=f"Generated with default voice: {message}"
+                    )
+            raise e
+            
     except HTTPException:
         raise
     except Exception as e:
