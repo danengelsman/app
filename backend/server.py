@@ -444,45 +444,19 @@ class CentralOverseerAgent(BaseAgent):
             branding_result = await self.sub_agents["brand_ambassador"].execute_task({})
             workflow_results["branding"] = branding_result
             
-            # Step 4: Audit and optimize content
-            logging.info("Auditing and optimizing content...")
-            audit_result = await self.sub_agents["auditor_optimizer"].execute_task({
-                "content_pieces": content_result.get("content", [])
-            })
+            # Extended agents workflow steps commented out after rollback
+            # Future enhancement: Add voice cloning integration here
+            
+            # Placeholder for audit optimization
+            audit_result = {"content": content_result.get("content", []), "status": "skipped"}
             workflow_results["audit_optimization"] = audit_result
             
-            # Step 5: Setup monetization
-            logging.info("Setting up monetization strategies...")
-            monetization_result = await self.sub_agents["monetization"].execute_task({
-                "content_pieces": audit_result.get("content", [])
-            })
-            workflow_results["monetization"] = monetization_result
-            
-            # Step 6: Create blog posts
-            logging.info("Creating blog posts...")
-            blog_result = await self.sub_agents["blog_writer"].execute_task({
-                "topics": topics_result.get("topics", [])
-            })
-            workflow_results["blog_writing"] = blog_result
-            
-            # Step 7: Generate content assets
-            logging.info("Generating content assets...")
-            generation_result = await self.sub_agents["content_generator"].execute_task({
-                "content_pieces": audit_result.get("content", [])
-            })
-            workflow_results["content_generation"] = generation_result
-            
-            # Step 8: Collect analytics
-            logging.info("Collecting analytics and insights...")
-            analytics_result = await self.sub_agents["analytics"].execute_task({})
-            workflow_results["analytics"] = analytics_result
-            
-            # Step 9: Compliance check
-            logging.info("Running compliance checks...")
-            compliance_result = await self.sub_agents["compliance"].execute_task({
-                "content_pieces": audit_result.get("content", [])
-            })
-            workflow_results["compliance"] = compliance_result
+            # Placeholder for other steps
+            workflow_results["monetization"] = {"status": "skipped"}
+            workflow_results["blog_writing"] = {"posts": [], "status": "skipped"}
+            workflow_results["content_generation"] = {"status": "skipped"}
+            workflow_results["analytics"] = {"status": "skipped"}
+            workflow_results["compliance"] = {"compliance_results": [], "status": "skipped"}
             
             return {
                 "status": "success",
