@@ -794,6 +794,55 @@ async def voice_clone_health_check():
             "timestamp": datetime.utcnow().isoformat()
         }
 
+@api_router.get("/voice-clone/rate-limit-status/")
+async def get_rate_limit_status():
+    """Get current rate limit status from MiniMax API"""
+    try:
+        # Get voice clone manager
+        manager = get_voice_clone_manager()
+        
+        # Try a minimal API call to check rate limit status
+        async with MinimaxClient(manager.auth) as client:
+            try:
+                # Make a minimal request to test rate limits
+                test_result = await client.generate_speech(
+                    text="test", 
+                    voice_id="male-qn-qingse", 
+                    model="speech-01",
+                    max_retries=1
+                )
+                return {
+                    "rate_limit_status": "OK",
+                    "message": "API is responding normally",
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "test_successful": True
+                }
+            except HTTPException as e:
+                if e.status_code == 429:
+                    return {
+                        "rate_limit_status": "RATE_LIMITED",
+                        "message": "MiniMax API is currently rate limiting requests",
+                        "recommendation": "Please wait 5-10 minutes before trying again",
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "test_successful": False
+                    }
+                else:
+                    return {
+                        "rate_limit_status": "API_ERROR", 
+                        "message": f"API error: {e.detail}",
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "test_successful": False
+                    }
+                    
+    except Exception as e:
+        logger.error(f"Rate limit status check failed: {str(e)}")
+        return {
+            "rate_limit_status": "UNKNOWN",
+            "message": f"Unable to check rate limit status: {str(e)}",
+            "timestamp": datetime.utcnow().isoformat(),
+            "test_successful": False
+        }
+
 # Include the router in the main app
 app.include_router(api_router)
 
