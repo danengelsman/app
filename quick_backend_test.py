@@ -3,7 +3,7 @@ import sys
 
 def test_key_endpoints():
     """Test key endpoints needed for navigation testing"""
-    base_url = "https://ai-creator-system.preview.emergentagent.com/api"
+    base_url = "https://emergent-content-1.preview.emergentagent.com/api"
     
     endpoints = [
         ("Health Check", "GET", ""),

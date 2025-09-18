@@ -2,7 +2,7 @@ import requests
 import sys
 
 def quick_test():
-    base_url = "https://ai-creator-system.preview.emergentagent.com"
+    base_url = "https://emergent-content-1.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     print("🔍 Quick Backend API Check")
