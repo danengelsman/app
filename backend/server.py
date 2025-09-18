@@ -805,7 +805,7 @@ async def get_rate_limit_status():
         async with MinimaxClient(manager.auth) as client:
             try:
                 # Make a minimal request to test rate limits
-                test_result = await client.generate_speech(
+                await client.generate_speech(
                     text="test", 
                     voice_id="male-qn-qingse", 
                     model="speech-01",
