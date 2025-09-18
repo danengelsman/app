@@ -13,6 +13,10 @@ from enum import Enum
 import asyncio
 import json
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+from voice_cloning import (
+    VoiceCloneManager, VoiceCloneRequest, VoiceCloneResponse,
+    TTSRequest, TTSResponse, voice_clone_manager
+)
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
