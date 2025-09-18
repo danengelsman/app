@@ -1555,6 +1555,13 @@ const Navigation = () => {
           >
             Branding
           </Link>
+          <Link 
+            to="/voice-cloning" 
+            onClick={closeMobileMenu}
+            className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium transition-colors"
+          >
+            Voice Cloning
+          </Link>
         </div>
       </div>
     </nav>
