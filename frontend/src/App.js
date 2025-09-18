@@ -1580,6 +1580,7 @@ function App() {
             <Route path="/topics" element={<TrendingTopics />} />
             <Route path="/content" element={<ContentLibrary />} />
             <Route path="/branding" element={<BrandingKit />} />
+            <Route path="/voice-cloning" element={<VoiceCloning />} />
           </Routes>
         </div>
       </BrowserRouter>
