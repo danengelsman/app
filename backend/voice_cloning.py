@@ -322,9 +322,21 @@ class MinimaxClient:
                 
                 if response.status == 200:
                     result = await response.json()
-                    audio_url = result.get("audio_url")
+                    
+                    # Check for rate limiting or other API errors
+                    base_resp = result.get("base_resp", {})
+                    if base_resp.get("status_code") != 0:
+                        error_msg = base_resp.get("status_msg", "Unknown API error")
+                        raise HTTPException(
+                            status_code=429 if "rate limit" in error_msg.lower() else 400,
+                            detail=f"Minimax API error: {error_msg}"
+                        )
+                    
+                    # Get audio file URL from correct field
+                    audio_url = result.get("audio_file") or result.get("audio_url")
                     if not audio_url:
-                        raise ValueError("No audio_url in response")
+                        logger.error(f"No audio file in response. Response keys: {list(result.keys())}")
+                        raise ValueError("No audio file in response from Minimax API")
                     
                     logger.info(f"Speech generated for voice: {voice_id}")
                     return audio_url
