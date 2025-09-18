@@ -15,7 +15,7 @@ import json
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from voice_cloning import (
     VoiceCloneManager, VoiceCloneRequest, VoiceCloneResponse,
-    TTSRequest, TTSResponse, get_voice_clone_manager
+    TTSRequest, TTSResponse, get_voice_clone_manager, MinimaxClient
 )
 
 ROOT_DIR = Path(__file__).parent
