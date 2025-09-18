@@ -693,7 +693,10 @@ async def create_voice_clone(
 async def generate_speech_with_clone(tts_request: TTSRequest):
     """Generate speech using a previously created voice clone"""
     try:
-        audio_url = await voice_clone_manager.generate_speech_with_voice(
+        # Get voice clone manager
+        manager = get_voice_clone_manager()
+        
+        audio_url = await manager.generate_speech_with_voice(
             text=tts_request.text,
             voice_id=tts_request.voice_id,
             model=tts_request.model
