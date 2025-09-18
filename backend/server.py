@@ -657,8 +657,11 @@ async def create_voice_clone(
 ):
     """Create a new voice clone from uploaded audio file"""
     try:
+        # Get voice clone manager
+        manager = get_voice_clone_manager()
+        
         # Create voice clone
-        job = await voice_clone_manager.create_voice_clone_from_upload(
+        job = await manager.create_voice_clone_from_upload(
             file=file,
             voice_id=voice_id,
             preview_text=preview_text,
@@ -666,7 +669,7 @@ async def create_voice_clone(
         )
         
         # Schedule cleanup of old files
-        background_tasks.add_task(voice_clone_manager.cleanup_old_files)
+        background_tasks.add_task(manager.cleanup_old_files)
         
         return VoiceCloneResponse(
             voice_id=job.voice_id,
