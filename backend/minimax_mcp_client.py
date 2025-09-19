@@ -249,13 +249,17 @@ class MinimaxMCPClient:
             
             # Look for created audio URLs in the success text
             if success_text:
-                if "Audio URL:" in success_text:
-                    # Extract URL from "Audio URL: https://..."
-                    start = success_text.find("Audio URL: ") + 11
-                    remaining = success_text[start:]
-                    potential_url = remaining.split()[0] if remaining.split() else None
-                    if potential_url and potential_url.startswith("http"):
-                        job.preview_url = potential_url
+                # Check for different URL patterns
+                url_patterns = ["Demo audio URL:", "Audio URL:", "Preview URL:"]
+                for pattern in url_patterns:
+                    if pattern in success_text:
+                        start = success_text.find(pattern) + len(pattern)
+                        remaining = success_text[start:].strip()
+                        potential_url = remaining.split()[0] if remaining.split() else None
+                        if potential_url and potential_url.startswith("http"):
+                            job.preview_url = potential_url
+                            logger.info(f"Found preview audio URL: {potential_url[:50]}...")
+                            break
             
             self.jobs[job_id] = job
             logger.info(f"Voice clone created successfully: {voice_id}")
