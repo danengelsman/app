@@ -601,6 +601,24 @@ async def get_agents_status():
     
     return {"agents": agents_status}
 
+@api_router.get("/system/status")
+async def get_system_status():
+    """Get comprehensive system status including voice cloning and automation"""
+    try:
+        status = await central_overseer.get_system_status()
+        return status
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/system/voice/set-default")
+async def set_default_voice(voice_id: str):
+    """Set the default voice for content generation"""
+    try:
+        await central_overseer.set_default_voice(voice_id)
+        return {"status": "success", "message": f"Default voice set to {voice_id}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/trending-topics")
 async def get_trending_topics(limit: int = 10):
     """Get recent trending topics"""
