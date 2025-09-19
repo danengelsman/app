@@ -366,6 +366,28 @@ class VoiceCloneManager:
         # Save the file
         async with aiofiles.open(file_path, 'wb') as f:
             content = await file.read()
+            
+            # Basic validation - check if content looks like audio
+            if len(content) < 1000:  # Audio files should be at least 1KB
+                raise HTTPException(
+                    status_code=400, 
+                    detail="File too small to be a valid audio file. Please upload a real audio file."
+                )
+            
+            # Check for some common audio file headers
+            if file_ext == '.mp3':
+                if not (content.startswith(b'ID3') or content.startswith(b'\xff\xfb') or content.startswith(b'\xff\xf3')):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Invalid MP3 file format. Please upload a valid MP3 audio file."
+                    )
+            elif file_ext == '.wav':
+                if not content.startswith(b'RIFF'):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Invalid WAV file format. Please upload a valid WAV audio file."
+                    )
+            
             await f.write(content)
         
         return str(file_path)
