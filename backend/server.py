@@ -690,7 +690,7 @@ async def create_voice_clone(
         )
 
 @api_router.post("/voice-clone/generate-speech/", response_model=TTSResponse)
-async def generate_speech_with_clone(tts_request: TTSRequest):
+async def generate_speech_with_clone(background_tasks: BackgroundTasks, tts_request: TTSRequest):
     """Generate speech using a previously created voice clone"""
     try:
         # Get voice clone manager
