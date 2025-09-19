@@ -115,9 +115,12 @@ class MinimaxMCPClient:
                 # Import MCP functions
                 from minimax_mcp.server import voice_clone, text_to_audio, list_voices
                 
+                # Run MCP functions in thread pool since they're synchronous
+                loop = asyncio.get_event_loop()
+                
                 if tool_name == "list_voices":
                     voice_type = parameters.get("voice_type", "all")
-                    result = await list_voices(voice_type=voice_type)
+                    result = await loop.run_in_executor(None, list_voices, voice_type)
                     return result
                 
                 elif tool_name == "voice_clone":
@@ -129,13 +132,16 @@ class MinimaxMCPClient:
                     
                     logger.info(f"Calling MiniMax voice_clone: voice_id={voice_id}, file={file_path}")
                     
-                    result = await voice_clone(
-                        voice_id=voice_id,
-                        file=file_path,
-                        text=text,
-                        output_directory=output_directory,
-                        is_url=is_url
-                    )
+                    def run_voice_clone():
+                        return voice_clone(
+                            voice_id=voice_id,
+                            file=file_path,
+                            text=text,
+                            output_directory=output_directory,
+                            is_url=is_url
+                        )
+                    
+                    result = await loop.run_in_executor(None, run_voice_clone)
                     return result
                 
                 elif tool_name == "text_to_audio":
@@ -149,15 +155,18 @@ class MinimaxMCPClient:
                     
                     logger.info(f"Calling MiniMax text_to_audio: voice_id={voice_id}, text='{text[:50]}...'")
                     
-                    result = await text_to_audio(
-                        text=text,
-                        output_directory=output_directory,
-                        voice_id=voice_id,
-                        model=model,
-                        speed=speed,
-                        emotion=emotion,
-                        format=format_type
-                    )
+                    def run_text_to_audio():
+                        return text_to_audio(
+                            text=text,
+                            output_directory=output_directory,
+                            voice_id=voice_id,
+                            model=model,
+                            speed=speed,
+                            emotion=emotion,
+                            format=format_type
+                        )
+                    
+                    result = await loop.run_in_executor(None, run_text_to_audio)
                     return result
                 
                 else:
