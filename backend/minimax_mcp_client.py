@@ -50,10 +50,11 @@ class VoiceCloneRequest(BaseModel):
 
 class VoiceCloneResponse(BaseModel):
     voice_id: str
+    file_id: str
     job_id: str
     status: str
     message: str
-    preview_audio_path: Optional[str] = None
+    preview_audio_url: Optional[str] = None
 
 class TTSRequest(BaseModel):
     text: str = Field(..., max_length=10000)
