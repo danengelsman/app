@@ -672,9 +672,9 @@ async def create_voice_clone(
         
         return VoiceCloneResponse(
             voice_id=job.voice_id,
-            file_id=job.file_id or "unknown",
+            file_id=getattr(job, 'file_id', None) or job.file_path or "unknown",
             status=job.status.value,
-            message="Voice clone created successfully",
+            message="Voice clone created successfully with MCP",
             preview_audio_url=job.preview_url,
             job_id=job.job_id
         )
