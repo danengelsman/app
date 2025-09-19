@@ -958,6 +958,307 @@ Full thread with detailed analysis...`,
   );
 };
 
+const Agent1Dashboard = () => {
+  const [systemStatus, setSystemStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [workflowRunning, setWorkflowRunning] = useState(false);
+  const [workflowResult, setWorkflowResult] = useState(null);
+  const [selectedVoice, setSelectedVoice] = useState('');
+  const [clonedVoices, setClonedVoices] = useState([]);
+
+  useEffect(() => {
+    fetchSystemStatus();
+    // Load cloned voices from localStorage
+    const savedVoices = localStorage.getItem('clonedVoices');
+    if (savedVoices) {
+      setClonedVoices(JSON.parse(savedVoices));
+    }
+  }, []);
+
+  const fetchSystemStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/system/status`);
+      setSystemStatus(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching system status:', error);
+      setLoading(false);
+    }
+  };
+
+  const executeWorkflow = async () => {
+    setWorkflowRunning(true);
+    setWorkflowResult(null);
+    
+    try {
+      const params = selectedVoice ? { voice_id: selectedVoice } : {};
+      const response = await axios.post(`${API}/agents/execute-workflow`, null, { params });
+      setWorkflowResult(response.data);
+      
+      // Refresh system status after workflow
+      setTimeout(() => {
+        fetchSystemStatus();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Workflow execution error:', error);
+      setWorkflowResult({
+        status: 'error',
+        error: error.response?.data?.detail || error.message
+      });
+    } finally {
+      setWorkflowRunning(false);
+    }
+  };
+
+  const setDefaultVoice = async (voiceId) => {
+    try {
+      await axios.post(`${API}/system/voice/set-default`, null, {
+        params: { voice_id: voiceId }
+      });
+      
+      // Refresh system status
+      fetchSystemStatus();
+      
+      alert(`Default voice set to: ${voiceId}`);
+    } catch (error) {
+      console.error('Error setting default voice:', error);
+      alert('Failed to set default voice');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-lg">
+        <h1 className="text-3xl font-bold mb-2">Agent 1 - Central Overseer</h1>
+        <p className="text-purple-100">Automated multi-agent content creation and voice cloning orchestrator</p>
+      </div>
+
+      {/* System Status */}
+      <div className="bg-white p-6 rounded-lg shadow-lg border">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">System Status</h2>
+        
+        {systemStatus && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Agent 1 Status */}
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h3 className="font-semibold text-green-800 mb-2">Agent 1 Status</h3>
+              <p className="text-green-600 capitalize">{systemStatus.agent_1_status}</p>
+            </div>
+
+            {/* Voice Cloning Status */}
+            <div className={`p-4 border rounded-lg ${
+              systemStatus.voice_cloning.status === 'operational' 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <h3 className={`font-semibold mb-2 ${
+                systemStatus.voice_cloning.status === 'operational' 
+                  ? 'text-green-800' 
+                  : 'text-red-800'
+              }`}>Voice Cloning</h3>
+              <p className={`capitalize ${
+                systemStatus.voice_cloning.status === 'operational' 
+                  ? 'text-green-600' 
+                  : 'text-red-600'
+              }`}>{systemStatus.voice_cloning.status}</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Default Voice: {systemStatus.voice_cloning.default_voice || 'None set'}
+              </p>
+            </div>
+
+            {/* Automation Status */}
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="font-semibold text-blue-800 mb-2">Automation</h3>
+              <p className="text-blue-600">
+                {systemStatus.automation.enabled ? 'Enabled' : 'Disabled'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Sub-agents Status */}
+        {systemStatus && systemStatus.sub_agents && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Sub-Agents Status</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {Object.entries(systemStatus.sub_agents).map(([key, agent]) => (
+                <div key={key} className="p-3 bg-gray-50 border rounded-lg">
+                  <h4 className="font-medium text-gray-700">{agent.name}</h4>
+                  <p className="text-sm text-gray-600 capitalize">{agent.status}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Content Pipeline Metrics */}
+        {systemStatus && systemStatus.content_pipeline && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Content Pipeline</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h4 className="font-medium text-yellow-800">Topics in Queue</h4>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {systemStatus.content_pipeline.topics_in_queue}
+                </p>
+              </div>
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <h4 className="font-medium text-green-800">Content Ready</h4>
+                <p className="text-2xl font-bold text-green-600">
+                  {systemStatus.content_pipeline.content_pieces_ready}
+                </p>
+              </div>
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-medium text-blue-800">Published Today</h4>
+                <p className="text-2xl font-bold text-blue-600">
+                  {systemStatus.content_pipeline.published_today}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Workflow Control */}
+      <div className="bg-white p-6 rounded-lg shadow-lg border">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Automated Workflow Control</h2>
+        
+        <div className="space-y-4">
+          {/* Voice Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Voice for Content Generation (Optional)
+            </label>
+            <select
+              value={selectedVoice}
+              onChange={(e) => setSelectedVoice(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="">Use default voice (if set)</option>
+              {clonedVoices.map((voice, index) => (
+                <option key={index} value={voice.voice_id}>
+                  {voice.voice_id} (Created: {new Date(voice.created_at).toLocaleDateString()})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Execute Workflow Button */}
+          <button
+            onClick={executeWorkflow}
+            disabled={workflowRunning}
+            className={`w-full py-3 px-4 rounded-lg font-semibold text-white ${
+              workflowRunning
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-purple-600 hover:bg-purple-700'
+            } transition-colors`}
+          >
+            {workflowRunning ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Running Automated Workflow...
+              </div>
+            ) : (
+              'Execute Full Automated Workflow'
+            )}
+          </button>
+        </div>
+
+        {/* Workflow Result */}
+        {workflowResult && (
+          <div className={`mt-4 p-4 border rounded-lg ${
+            workflowResult.status === 'success' 
+              ? 'bg-green-50 border-green-200' 
+              : 'bg-red-50 border-red-200'
+          }`}>
+            <h3 className={`font-semibold mb-2 ${
+              workflowResult.status === 'success' ? 'text-green-800' : 'text-red-800'
+            }`}>
+              Workflow {workflowResult.status === 'success' ? 'Completed Successfully!' : 'Failed'}
+            </h3>
+            
+            {workflowResult.status === 'success' && workflowResult.agent_1_summary && (
+              <div className="space-y-2 text-sm">
+                <p><strong>Topics Discovered:</strong> {workflowResult.agent_1_summary.topics_discovered}</p>
+                <p><strong>Content Pieces Created:</strong> {workflowResult.agent_1_summary.content_pieces_created}</p>
+                <p><strong>Voice Clones Processed:</strong> {workflowResult.agent_1_summary.voice_clones_processed}</p>
+                <p><strong>Content Scheduled:</strong> {workflowResult.agent_1_summary.content_scheduled}</p>
+                <p><strong>Automation Status:</strong> {workflowResult.agent_1_summary.automation_status}</p>
+              </div>
+            )}
+            
+            {workflowResult.error && (
+              <p className="text-red-600 text-sm">{workflowResult.error}</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Voice Management */}
+      {clonedVoices.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow-lg border">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Voice Management</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {clonedVoices.map((voice, index) => (
+              <div key={index} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-gray-700">{voice.voice_id}</h3>
+                  <button
+                    onClick={() => setDefaultVoice(voice.voice_id)}
+                    className="text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition-colors"
+                  >
+                    Set as Default
+                  </button>
+                </div>
+                <p className="text-sm text-gray-500 mb-3">
+                  Created: {new Date(voice.created_at).toLocaleDateString()}
+                </p>
+                {voice.preview_url && (
+                  <audio controls className="w-full">
+                    <source src={voice.preview_url} type="audio/mpeg" />
+                    Your browser does not support the audio element.
+                  </audio>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Automation Settings */}
+      {systemStatus && systemStatus.automation && (
+        <div className="bg-white p-6 rounded-lg shadow-lg border">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Automation Settings</h2>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.entries(systemStatus.automation.settings.content_schedule).map(([platform, config]) => (
+                <div key={platform} className="p-4 bg-gray-50 border rounded-lg">
+                  <h3 className="font-semibold text-gray-700 capitalize mb-2">{platform}</h3>
+                  <p className="text-sm text-gray-600">Frequency: {config.frequency}</p>
+                  {config.time && <p className="text-sm text-gray-600">Time: {config.time}</p>}
+                  {config.times && <p className="text-sm text-gray-600">Times: {config.times.join(', ')}</p>}
+                  {config.active_hours && <p className="text-sm text-gray-600">Active: {config.active_hours[0]}:00-{config.active_hours[1]}:00</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const VoiceCloning = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [voiceId, setVoiceId] = useState('');
