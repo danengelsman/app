@@ -415,23 +415,102 @@ class BrandAmbassadorAgent(BaseAgent):
 
 # Central Overseer Agent
 class CentralOverseerAgent(BaseAgent):
+    """Agent 1 - Central Overseer that coordinates all other agents and manages voice cloning integration"""
+    
     def __init__(self):
         super().__init__(
             "Agent 1 - Central Overseer",
-            "Coordinates all sub-agents and manages the complete content creation workflow."
+            "Coordinates all sub-agents, manages voice cloning, and orchestrates the complete automated content creation workflow."
         )
         self.sub_agents = {
             "trending_topics": TrendingTopicsAgent(),
             "topic_selector": TopicSelectorAgent(),
             "brand_ambassador": BrandAmbassadorAgent(),
-            # Extended agents commented out after rollback
-            # "auditor_optimizer": AuditorOptimizerAgent(),
-            # "monetization": MonetizationAgent(),
-            # "blog_writer": BlogWriterAgent(),
-            # "content_generator": ContentGeneratorAgent(),
-            # "analytics": AnalyticsAgent(),
-            # "compliance": ComplianceAgent()
         }
+        
+        # Voice cloning integration
+        self.voice_manager = None
+        self.default_voice_id = None
+        self.automation_settings = {
+            "auto_generate_voices": True,
+            "auto_publish": False,
+            "content_schedule": {
+                "youtube": {"frequency": "daily", "time": "10:00"},
+                "instagram": {"frequency": "twice_daily", "times": ["09:00", "17:00"]},
+                "tiktok": {"frequency": "twice_daily", "times": ["12:00", "20:00"]},
+                "twitter": {"frequency": "hourly", "active_hours": [9, 17]}
+            }
+        }
+    
+    def get_voice_manager(self):
+        """Get voice cloning manager"""
+        if self.voice_manager is None:
+            from minimax_mcp_client import get_voice_clone_manager
+            self.voice_manager = get_voice_clone_manager()
+        return self.voice_manager
+    
+    async def set_default_voice(self, voice_id: str):
+        """Set the default voice for content generation"""
+        self.default_voice_id = voice_id
+        logger.info(f"Agent 1: Default voice set to {voice_id}")
+    
+    async def get_system_status(self):
+        """Get comprehensive system status"""
+        status = {
+            "agent_1_status": "active",
+            "sub_agents": {},
+            "voice_cloning": {
+                "status": "unknown",
+                "default_voice": self.default_voice_id,
+                "available_voices": []
+            },
+            "automation": {
+                "enabled": True,
+                "settings": self.automation_settings
+            },
+            "content_pipeline": {
+                "topics_in_queue": 0,
+                "content_pieces_ready": 0,
+                "published_today": 0
+            }
+        }
+        
+        # Check sub-agents status
+        for name, agent in self.sub_agents.items():
+            status["sub_agents"][name] = {
+                "name": agent.name,
+                "status": agent.status.value,
+                "agent_id": agent.agent_id
+            }
+        
+        # Check voice cloning status
+        try:
+            voice_manager = self.get_voice_manager()
+            credentials_valid = await voice_manager.validate_credentials()
+            status["voice_cloning"]["status"] = "operational" if credentials_valid else "error"
+            
+            # Get available voices (from localStorage equivalent)
+            # This would be enhanced to track created voices
+            
+        except Exception as e:
+            status["voice_cloning"]["status"] = f"error: {str(e)}"
+        
+        # Get content pipeline metrics
+        try:
+            topics_count = await db.trending_topics.count_documents({
+                "discovered_date": {"$gte": datetime.utcnow() - timedelta(days=1)}
+            })
+            content_count = await db.content_pieces.count_documents({
+                "created_date": {"$gte": datetime.utcnow() - timedelta(days=1)}
+            })
+            
+            status["content_pipeline"]["topics_in_queue"] = topics_count
+            status["content_pipeline"]["content_pieces_ready"] = content_count
+            
+        except Exception as e:
+            logger.error(f"Failed to get pipeline metrics: {str(e)}")
+        
+        return status
 
     async def execute_full_workflow(self) -> Dict[str, Any]:
         """Execute the complete content creation workflow"""
