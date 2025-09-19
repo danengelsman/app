@@ -112,6 +112,11 @@ class MinimaxMCPClient:
                 os.environ[key] = value
             
             try:
+                # Force reload of MCP module to pick up environment variables
+                import importlib
+                import minimax_mcp.server
+                importlib.reload(minimax_mcp.server)
+                
                 # Import MCP functions
                 from minimax_mcp.server import voice_clone, text_to_audio, list_voices
                 
