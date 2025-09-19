@@ -13,9 +13,9 @@ from enum import Enum
 import asyncio
 import json
 from emergentintegrations.llm.chat import LlmChat, UserMessage
-from voice_cloning import (
+from minimax_mcp_client import (
     VoiceCloneManager, VoiceCloneRequest, VoiceCloneResponse,
-    TTSRequest, TTSResponse, get_voice_clone_manager, MinimaxClient
+    TTSRequest, TTSResponse, get_voice_clone_manager
 )
 
 ROOT_DIR = Path(__file__).parent
