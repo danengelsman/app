@@ -247,17 +247,15 @@ class MinimaxMCPClient:
                         success_text = content_item.get("text", "")
                         break
             
-            # Look for created audio files in the success text
-            if success_text and ("audio saved" in success_text.lower() or "demo" in success_text.lower()):
-                # Extract audio file path from the text
-                if self.base_path in success_text:
-                    start = success_text.find(self.base_path)
+            # Look for created audio URLs in the success text
+            if success_text:
+                if "Audio URL:" in success_text:
+                    # Extract URL from "Audio URL: https://..."
+                    start = success_text.find("Audio URL: ") + 11
                     remaining = success_text[start:]
-                    parts = remaining.split()
-                    if parts:
-                        potential_path = parts[0]
-                        if potential_path.endswith(('.mp3', '.wav', '.flac')):
-                            job.preview_url = potential_path
+                    potential_url = remaining.split()[0] if remaining.split() else None
+                    if potential_url and potential_url.startswith("http"):
+                        job.preview_url = potential_url
             
             self.jobs[job_id] = job
             logger.info(f"Voice clone created successfully: {voice_id}")
