@@ -181,7 +181,7 @@ class MinimaxClient:
     
     def __init__(self, auth: MinimaxAuth):
         self.auth = auth
-        self.base_url = "https://api.minimaxi.chat/v1"
+        self.base_url = "https://api.minimax.io/v1"
         self.session = None
         self.jobs: Dict[str, VoiceCloneJob] = {}
     
