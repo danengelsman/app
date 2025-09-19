@@ -838,6 +838,30 @@ async def get_rate_limit_status():
             "test_successful": False
         }
 
+@api_router.get("/voice-clone/voices/")
+async def list_available_voices(voice_type: str = "all"):
+    """List available voices from MiniMax MCP server"""
+    try:
+        # Get voice clone manager
+        manager = get_voice_clone_manager()
+        
+        # List voices using MCP
+        voices = await manager.list_available_voices(voice_type)
+        
+        return {
+            "voices": voices,
+            "voice_type": voice_type,
+            "count": len(voices),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"List voices failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to list voices: {str(e)}"
+        )
+
 # Include the router in the main app
 app.include_router(api_router)
 
