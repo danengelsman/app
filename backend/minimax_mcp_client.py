@@ -329,10 +329,16 @@ class MinimaxMCPClient:
                 for content_item in result["content"]:
                     if content_item.get("type") == "text":
                         text_content = content_item.get("text", "")
-                        if "Audio URL:" in text_content:
-                            start = text_content.find("Audio URL: ") + 11
-                            remaining = text_content[start:]
-                            audio_url = remaining.split()[0] if remaining.split() else None
+                        # Check for different URL patterns
+                        url_patterns = ["Audio URL:", "Demo audio URL:", "Preview URL:"]
+                        for pattern in url_patterns:
+                            if pattern in text_content:
+                                start = text_content.find(pattern) + len(pattern)
+                                remaining = text_content[start:].strip()
+                                audio_url = remaining.split()[0] if remaining.split() else None
+                                if audio_url and audio_url.startswith("http"):
+                                    break
+                        if audio_url:
                             break
             
             if not audio_url:
