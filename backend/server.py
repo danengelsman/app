@@ -796,49 +796,44 @@ async def voice_clone_health_check():
 
 @api_router.get("/voice-clone/rate-limit-status/")
 async def get_rate_limit_status():
-    """Get current rate limit status from MiniMax API"""
+    """Get current rate limit status from MiniMax MCP server"""
     try:
         # Get voice clone manager
         manager = get_voice_clone_manager()
         
-        # Try a minimal API call to check rate limit status
-        async with MinimaxClient(manager.auth) as client:
-            try:
-                # Make a minimal request to test rate limits
-                await client.generate_speech(
-                    text="test", 
-                    voice_id="male-qn-qingse", 
-                    model="speech-01",
-                    max_retries=1
-                )
+        # Try to list voices as a minimal test
+        try:
+            voices = await manager.list_available_voices("system")
+            return {
+                "rate_limit_status": "OK",
+                "message": "MCP server is responding normally",
+                "timestamp": datetime.utcnow().isoformat(),
+                "test_successful": True,
+                "available_voices_count": len(voices)
+            }
+        except Exception as e:
+            error_msg = str(e).lower()
+            if "rate limit" in error_msg or "429" in error_msg:
                 return {
-                    "rate_limit_status": "OK",
-                    "message": "API is responding normally",
+                    "rate_limit_status": "RATE_LIMITED",
+                    "message": "MiniMax MCP server is currently rate limiting requests",
+                    "recommendation": "Please wait 5-10 minutes before trying again",
                     "timestamp": datetime.utcnow().isoformat(),
-                    "test_successful": True
+                    "test_successful": False
                 }
-            except HTTPException as e:
-                if e.status_code == 429:
-                    return {
-                        "rate_limit_status": "RATE_LIMITED",
-                        "message": "MiniMax API is currently rate limiting requests",
-                        "recommendation": "Please wait 5-10 minutes before trying again",
-                        "timestamp": datetime.utcnow().isoformat(),
-                        "test_successful": False
-                    }
-                else:
-                    return {
-                        "rate_limit_status": "API_ERROR", 
-                        "message": f"API error: {e.detail}",
-                        "timestamp": datetime.utcnow().isoformat(),
-                        "test_successful": False
-                    }
+            else:
+                return {
+                    "rate_limit_status": "API_ERROR", 
+                    "message": f"MCP server error: {str(e)}",
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "test_successful": False
+                }
                     
     except Exception as e:
         logger.error(f"Rate limit status check failed: {str(e)}")
         return {
             "rate_limit_status": "UNKNOWN",
-            "message": f"Unable to check rate limit status: {str(e)}",
+            "message": f"Unable to check MCP server status: {str(e)}",
             "timestamp": datetime.utcnow().isoformat(),
             "test_successful": False
         }
