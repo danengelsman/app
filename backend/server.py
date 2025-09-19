@@ -664,8 +664,7 @@ async def create_voice_clone(
         job = await manager.create_voice_clone_from_upload(
             file=file,
             voice_id=voice_id,
-            preview_text=preview_text,
-            model=model
+            preview_text=preview_text
         )
         
         # Schedule cleanup of old files
