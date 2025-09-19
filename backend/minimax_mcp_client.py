@@ -98,58 +98,77 @@ class MinimaxMCPClient:
             return False
     
     async def _run_mcp_tool(self, tool_name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """Run a MiniMax MCP tool with the given parameters using direct module execution"""
+        """Run a MiniMax MCP tool with the given parameters using actual MCP functions"""
         try:
             # Set environment variables for the MCP call
-            env = os.environ.copy()
-            env.update({
+            old_env = {}
+            for key, value in {
                 "MINIMAX_API_KEY": self.api_key,
                 "MINIMAX_API_HOST": self.api_host,
                 "MINIMAX_MCP_BASE_PATH": self.base_path
-            })
+            }.items():
+                old_env[key] = os.environ.get(key)
+                os.environ[key] = value
             
-            # For now, let's simulate the MCP tools with direct API calls
-            # This is a temporary approach while we figure out the proper MCP integration
-            
-            if tool_name == "list_voices":
-                return {
-                    "content": [{
-                        "type": "text",
-                        "text": "Available voices: female-shaonv, male-qn-qingse, speech-02-hd voices available"
-                    }]
-                }
-            
-            elif tool_name == "voice_clone":
-                voice_id = parameters.get("voice_id")
-                file_path = parameters.get("file")
-                preview_text = parameters.get("text", "")
+            try:
+                # Import MCP functions
+                from minimax_mcp.server import voice_clone, text_to_audio, list_voices
                 
-                # For now, return a mock success response
-                # In production, this would call the actual MCP server
-                return {
-                    "content": [{
-                        "type": "text", 
-                        "text": f"Voice clone created for {voice_id}. Demo audio saved to {self.base_path}/demo_{voice_id}.mp3"
-                    }]
-                }
-            
-            elif tool_name == "text_to_audio":
-                voice_id = parameters.get("voice_id")
-                text = parameters.get("text")
+                if tool_name == "list_voices":
+                    voice_type = parameters.get("voice_type", "all")
+                    result = await list_voices(voice_type=voice_type)
+                    return result
                 
-                # Create a mock audio file path
-                audio_filename = f"tts_{voice_id}_{int(datetime.now().timestamp())}.mp3"
-                audio_path = f"{self.base_path}/{audio_filename}"
+                elif tool_name == "voice_clone":
+                    voice_id = parameters.get("voice_id")
+                    file_path = parameters.get("file")
+                    text = parameters.get("text")
+                    output_directory = parameters.get("output_directory", self.base_path)
+                    is_url = parameters.get("is_url", False)
+                    
+                    logger.info(f"Calling MiniMax voice_clone: voice_id={voice_id}, file={file_path}")
+                    
+                    result = await voice_clone(
+                        voice_id=voice_id,
+                        file=file_path,
+                        text=text,
+                        output_directory=output_directory,
+                        is_url=is_url
+                    )
+                    return result
                 
-                return {
-                    "content": [{
-                        "type": "text",
-                        "text": f"Audio generated successfully. File saved to {audio_path}"
-                    }]
-                }
-            
-            else:
-                raise ValueError(f"Unknown MCP tool: {tool_name}")
+                elif tool_name == "text_to_audio":
+                    text = parameters.get("text")
+                    voice_id = parameters.get("voice_id")
+                    model = parameters.get("model", "speech-02-hd")
+                    speed = parameters.get("speed", 1.0)
+                    emotion = parameters.get("emotion", "happy")
+                    output_directory = parameters.get("output_directory", self.base_path)
+                    format_type = parameters.get("format", "mp3")
+                    
+                    logger.info(f"Calling MiniMax text_to_audio: voice_id={voice_id}, text='{text[:50]}...'")
+                    
+                    result = await text_to_audio(
+                        text=text,
+                        output_directory=output_directory,
+                        voice_id=voice_id,
+                        model=model,
+                        speed=speed,
+                        emotion=emotion,
+                        format=format_type
+                    )
+                    return result
+                
+                else:
+                    raise ValueError(f"Unknown MCP tool: {tool_name}")
+                    
+            finally:
+                # Restore original environment variables
+                for key, old_value in old_env.items():
+                    if old_value is None:
+                        os.environ.pop(key, None)
+                    else:
+                        os.environ[key] = old_value
                 
         except Exception as e:
             logger.error(f"MCP tool execution error: {str(e)}")
