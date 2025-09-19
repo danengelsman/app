@@ -210,8 +210,18 @@ class MinimaxMCPClient:
             logger.info(f"Calling MCP voice_clone tool with voice_id: {voice_id}")
             result = await self._run_mcp_tool("voice_clone", parameters)
             
-            if "error" in result:
-                raise ValueError(f"Voice clone failed: {result['error']}")
+            # Check for MCP errors
+            if hasattr(result, 'text') and 'Failed to clone voice' in result.text:
+                error_text = result.text
+                if 'API Error' in error_text:
+                    if '1000-unknown error' in error_text:
+                        raise ValueError("Voice cloning failed: Invalid audio file format or API issue. Please ensure you upload a valid audio file (MP3, WAV, M4A) with actual audio content.")
+                    elif 'rate limit' in error_text.lower():
+                        raise ValueError("Voice cloning failed: API rate limit exceeded. Please try again in a few minutes.")
+                    else:
+                        raise ValueError(f"Voice cloning failed: {error_text}")
+                else:
+                    raise ValueError(f"Voice clone failed: {error_text}")
             
             # Create job record
             job = VoiceCloneJob(
@@ -223,22 +233,26 @@ class MinimaxMCPClient:
             )
             
             # Check if a preview audio was created
-            if "content" in result and result["content"]:
+            success_text = ""
+            if hasattr(result, 'text'):
+                success_text = result.text
+            elif "content" in result and result["content"]:
                 for content_item in result["content"]:
                     if content_item.get("type") == "text":
-                        text = content_item.get("text", "")
-                        if "audio saved" in text.lower() or "preview" in text.lower():
-                            # Extract audio file path from the text
-                            if self.base_path in text:
-                                start = text.find(self.base_path)
-                                # Find the end of the file path
-                                remaining = text[start:]
-                                parts = remaining.split()
-                                if parts:
-                                    potential_path = parts[0]
-                                    if potential_path.endswith(('.mp3', '.wav', '.flac')):
-                                        job.preview_url = potential_path
-                                        break
+                        success_text = content_item.get("text", "")
+                        break
+            
+            # Look for created audio files in the success text
+            if success_text and ("audio saved" in success_text.lower() or "demo" in success_text.lower()):
+                # Extract audio file path from the text
+                if self.base_path in success_text:
+                    start = success_text.find(self.base_path)
+                    remaining = success_text[start:]
+                    parts = remaining.split()
+                    if parts:
+                        potential_path = parts[0]
+                        if potential_path.endswith(('.mp3', '.wav', '.flac')):
+                            job.preview_url = potential_path
             
             self.jobs[job_id] = job
             logger.info(f"Voice clone created successfully: {voice_id}")
