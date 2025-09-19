@@ -2023,6 +2023,7 @@ function App() {
             <Route path="/content" element={<ContentLibrary />} />
             <Route path="/branding" element={<BrandingKit />} />
             <Route path="/voice-cloning" element={<VoiceCloning />} />
+            <Route path="/agent-1" element={<Agent1Dashboard />} />
           </Routes>
         </div>
       </BrowserRouter>
