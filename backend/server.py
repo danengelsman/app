@@ -709,7 +709,7 @@ async def generate_speech_with_clone(tts_request: TTSRequest):
         )
         
         return TTSResponse(
-            audio_path=audio_path,
+            audio_url=audio_path,  # Keep using audio_url for frontend compatibility
             status="completed"
         )
             
