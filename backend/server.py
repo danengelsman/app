@@ -731,10 +731,10 @@ async def root():
     return {"message": "Emergent AI Multi-Agent Content Creation System", "version": "1.0.0"}
 
 @api_router.post("/agents/execute-workflow")
-async def execute_workflow(background_tasks: BackgroundTasks):
-    """Execute the complete multi-agent workflow"""
+async def execute_workflow(background_tasks: BackgroundTasks, voice_id: Optional[str] = None):
+    """Execute the complete automated multi-agent workflow with optional voice cloning"""
     try:
-        result = await central_overseer.execute_full_workflow()
+        result = await central_overseer.execute_full_workflow(voice_id=voice_id)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
