@@ -18,8 +18,20 @@ from minimax_mcp_client import (
     TTSRequest, TTSResponse, get_voice_clone_manager
 )
 
+# Load environment variables first
+load_dotenv()
+
+# Ensure MiniMax environment variables are set globally for MCP package
+import os
+if not os.environ.get('MINIMAX_API_KEY'):
+    # Load from .env file
+    from dotenv import dotenv_values
+    env_values = dotenv_values('.env')
+    for key, value in env_values.items():
+        if key.startswith('MINIMAX_'):
+            os.environ[key] = value
+
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
