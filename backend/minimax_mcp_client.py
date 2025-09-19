@@ -306,29 +306,36 @@ class MinimaxMCPClient:
             if "error" in result:
                 raise ValueError(f"Speech generation failed: {result['error']}")
             
-            # Extract audio file path from result
-            audio_path = None
-            if "content" in result and result["content"]:
+            # Extract audio URL from result
+            audio_url = None
+            
+            # Handle direct TextContent response
+            if hasattr(result, 'text'):
+                text_content = result.text
+                if "Audio URL:" in text_content:
+                    # Extract URL from "Audio URL: https://..."
+                    start = text_content.find("Audio URL: ") + 11
+                    remaining = text_content[start:]
+                    audio_url = remaining.split()[0] if remaining.split() else None
+            
+            # Handle legacy content format
+            elif "content" in result and result["content"]:
                 for content_item in result["content"]:
                     if content_item.get("type") == "text":
                         text_content = content_item.get("text", "")
-                        if "audio saved" in text_content.lower() or self.base_path in text_content:
-                            # Extract file path
-                            if self.base_path in text_content:
-                                start = text_content.find(self.base_path)
-                                remaining = text_content[start:]
-                                parts = remaining.split()
-                                if parts:
-                                    potential_path = parts[0]
-                                    if potential_path.endswith(('.mp3', '.wav', '.flac')):
-                                        audio_path = potential_path
-                                        break
+                        if "Audio URL:" in text_content:
+                            start = text_content.find("Audio URL: ") + 11
+                            remaining = text_content[start:]
+                            audio_url = remaining.split()[0] if remaining.split() else None
+                            break
             
-            if not audio_path:
-                raise ValueError("No audio file path found in MCP response")
+            if not audio_url:
+                # Log the actual response for debugging
+                logger.error(f"No audio URL found in MCP response. Response: {result}")
+                raise ValueError("No audio URL found in MCP response")
             
-            logger.info(f"Speech generated successfully: {audio_path}")
-            return audio_path
+            logger.info(f"Speech generated successfully: {audio_url[:100]}...")
+            return audio_url
             
         except Exception as e:
             logger.error(f"Speech generation failed: {str(e)}")
