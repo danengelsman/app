@@ -22,7 +22,6 @@ from minimax_mcp_client import (
 load_dotenv()
 
 # Ensure MiniMax environment variables are set globally for MCP package
-import os
 if not os.environ.get('MINIMAX_API_KEY'):
     # Load from .env file
     from dotenv import dotenv_values
