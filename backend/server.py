@@ -551,14 +551,45 @@ class CentralOverseerAgent(BaseAgent):
             scheduling_result = await self._setup_content_scheduling(content_result)
             workflow_results["scheduling"] = scheduling_result
             
-            # Step 6: Analytics and monitoring setup
-            logger.info("Agent 1: Step 6 - Setting up analytics monitoring...")
-            analytics_result = await self._setup_analytics_monitoring()
+            # Step 6: Content auditing and optimization
+            logger.info("Agent 1: Step 6 - Auditing and optimizing content...")
+            audit_result = await self.sub_agents["auditor_optimizer"].execute_task({
+                "content_pieces": content_result.get("content", [])
+            })
+            workflow_results["audit_optimization"] = audit_result
+            
+            # Step 7: Monetization strategy setup
+            logger.info("Agent 1: Step 7 - Setting up monetization strategies...")
+            monetization_result = await self.sub_agents["monetization"].execute_task({
+                "content_pieces": audit_result.get("content", [])
+            })
+            workflow_results["monetization"] = monetization_result
+            
+            # Step 8: Blog content creation
+            logger.info("Agent 1: Step 8 - Creating blog posts...")
+            blog_result = await self.sub_agents["blog_writer"].execute_task({
+                "topics": topics_result.get("topics", [])
+            })
+            workflow_results["blog_writing"] = blog_result
+            
+            # Step 9: Content generation and asset preparation
+            logger.info("Agent 1: Step 9 - Generating content assets...")
+            generation_result = await self.sub_agents["content_generator"].execute_task({
+                "content_pieces": audit_result.get("content", [])
+            })
+            workflow_results["content_generation"] = generation_result
+            
+            # Step 10: Analytics collection and insights
+            logger.info("Agent 1: Step 10 - Collecting analytics and insights...")
+            analytics_result = await self.sub_agents["analytics"].execute_task({})
             workflow_results["analytics"] = analytics_result
             
-            # Future enhancements placeholder
-            workflow_results["monetization"] = {"status": "planned", "message": "Blog monetization and affiliate links setup"}
-            workflow_results["compliance"] = {"status": "planned", "message": "Content compliance and legal checks"}
+            # Step 11: Compliance checking
+            logger.info("Agent 1: Step 11 - Running compliance checks...")
+            compliance_result = await self.sub_agents["compliance"].execute_task({
+                "content_pieces": audit_result.get("content", [])
+            })
+            workflow_results["compliance"] = compliance_result
             
             logger.info("Agent 1: Workflow completed successfully!")
             
