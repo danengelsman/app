@@ -425,6 +425,12 @@ class CentralOverseerAgent(BaseAgent):
             "trending_topics": TrendingTopicsAgent(),
             "topic_selector": TopicSelectorAgent(),
             "brand_ambassador": BrandAmbassadorAgent(),
+            "auditor_optimizer": AuditorOptimizerAgent(),
+            "monetization": MonetizationAgent(),
+            "blog_writer": BlogWriterAgent(),
+            "content_generator": ContentGeneratorAgent(),
+            "analytics": AnalyticsAgent(),
+            "compliance": ComplianceAgent()
         }
         
         # Voice cloning integration
