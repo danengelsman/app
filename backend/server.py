@@ -602,9 +602,15 @@ class CentralOverseerAgent(BaseAgent):
                 "agent_1_summary": {
                     "topics_discovered": len(topics_result.get("topics", [])),
                     "content_pieces_created": len(content_result.get("content", [])),
+                    "content_audited": audit_result.get("audited_content", 0),
+                    "blog_posts_created": len(blog_result.get("posts", [])),
+                    "monetization_strategies": len(monetization_result.get("strategies", [])),
+                    "content_assets_generated": generation_result.get("assets_generated", 0),
+                    "compliance_approved": len([r for r in compliance_result.get("compliance_results", []) if r.get("approved")]),
                     "voice_clones_processed": voice_result.get("processed", 0),
                     "content_scheduled": scheduling_result.get("scheduled_count", 0),
-                    "automation_status": "active"
+                    "automation_status": "active",
+                    "total_agents_executed": len(workflow_results)
                 }
             }
             
