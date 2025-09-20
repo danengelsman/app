@@ -406,11 +406,11 @@ class BrandAmbassadorAgent(BaseAgent):
         
         return {"status": "success", "branding_kit": branding_kit.dict()}
 
-# Import extended agents (commented out after rollback)
-# from agents_extended import (
-#     AuditorOptimizerAgent, MonetizationAgent, BlogWriterAgent,
-#     ContentGeneratorAgent, AnalyticsAgent, ComplianceAgent
-# )
+# Import extended agents
+from agents_extended import (
+    AuditorOptimizerAgent, MonetizationAgent, BlogWriterAgent,
+    ContentGeneratorAgent, AnalyticsAgent, ComplianceAgent
+)
 
 # Central Overseer Agent
 class CentralOverseerAgent(BaseAgent):
