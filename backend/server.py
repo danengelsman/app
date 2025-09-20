@@ -1153,6 +1153,26 @@ async def list_available_voices(voice_type: str = "all"):
             detail=f"Failed to list voices: {str(e)}"
         )
 
+@api_router.get("/system/status")
+async def get_system_status():
+    """Get comprehensive system status from Agent 1"""
+    try:
+        status = await central_overseer.get_system_status()
+        return status
+    except Exception as e:
+        logger.error(f"System status check failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/system/voice/set-default")
+async def set_default_voice(voice_id: str):
+    """Set default voice for Agent 1 automation"""
+    try:
+        await central_overseer.set_default_voice(voice_id)
+        return {"status": "success", "default_voice": voice_id}
+    except Exception as e:
+        logger.error(f"Failed to set default voice: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Include the router in the main app
 app.include_router(api_router)
 
