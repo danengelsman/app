@@ -147,8 +147,8 @@ class Analytics(BaseModel):
     revenue_generated: float = 0.0
     recorded_date: datetime = Field(default_factory=datetime.utcnow)
 
-# Agent Classes
-class BaseAgent:
+# Database Models (keeping for compatibility)
+class Agent(BaseModel):
     def __init__(self, name: str, description: str):
         self.agent_id = str(uuid.uuid4())
         self.name = name
