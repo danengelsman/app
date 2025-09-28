@@ -157,12 +157,7 @@ class Agent(BaseModel):
     configuration: Dict[str, Any] = Field(default_factory=dict)
     performance_metrics: Dict[str, Any] = Field(default_factory=dict)
 
-class TrendingTopicsAgent(BaseAgent):
-    def __init__(self):
-        super().__init__(
-            "Agent 1A - Trending Topics Researcher",
-            "Scans real-time data to identify top trending topics in technology niche with virality potential."
-        )
+# Old agent classes removed - now using event-driven architecture
 
     async def _process_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
         prompt = """
