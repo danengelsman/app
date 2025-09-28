@@ -161,11 +161,7 @@ class Agent(BaseModel):
 # All old agent implementation content removed
 
 # TopicSelectorAgent removed
-    def __init__(self):
-        super().__init__(
-            "Agent 1B - Topic Selector and Copy Producer",
-            "Selects best topics and creates detailed content outlines with scripts, titles, and optimization."
-        )
+# TopicSelectorAgent init removed
 
     async def _process_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
         topics = task_data.get('topics', [])
