@@ -158,8 +158,7 @@ class Agent(BaseModel):
     performance_metrics: Dict[str, Any] = Field(default_factory=dict)
 
 # Old agent classes removed - now using event-driven architecture
-        prompt = """
-        Research and identify the top 10 trending topics in technology for content creation.
+# Content removed
         Focus on topics with high virality potential, search volume, and monetization opportunities.
         
         Consider these areas:
