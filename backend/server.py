@@ -1,21 +1,30 @@
+import asyncio
+import logging
+import uuid
+from datetime import datetime, timedelta
+from pathlib import Path
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any
+from enum import Enum
+import json
+import os
+
 from fastapi import FastAPI, APIRouter, HTTPException, BackgroundTasks, UploadFile, File, Form
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
-import uuid
-from datetime import datetime, timedelta
-from enum import Enum
-import json
+
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from minimax_mcp_client import (
     VoiceCloneResponse,
     TTSRequest, TTSResponse, get_voice_clone_manager
 )
+
+# Import event-driven agent clusters
+from event_bus import event_bus, EventTypes, EventPriority
+from intelligence_engine import IntelligenceEngine
+from creation_engine import CreationEngine
+from distribution_engine import DistributionEngine
 
 # Load environment variables first
 load_dotenv()
