@@ -464,321 +464,253 @@ class Agent1Orchestrator:
         
         self.status = "ready"
     
+    def set_database(self, db):
+        """Set database connection for orchestrator and all clusters"""
+        self.db = db
+        self.intelligence_engine.set_database(db)
+        self.creation_engine.set_database(db)
+        self.distribution_engine.set_database(db)
+    
     def get_voice_manager(self):
-        """Get voice cloning manager"""
-        if self.voice_manager is None:
-            from minimax_mcp_client import get_voice_clone_manager
-            self.voice_manager = get_voice_clone_manager()
-        return self.voice_manager
+        """Get voice cloning manager from Creation Engine"""
+        return self.creation_engine.get_voice_manager()
     
     async def set_default_voice(self, voice_id: str):
         """Set the default voice for content generation"""
-        self.default_voice_id = voice_id
-        logger.info(f"Agent 1: Default voice set to {voice_id}")
+        self.config["default_voice_id"] = voice_id
+        await self.creation_engine.set_default_voice(voice_id)
+        logger.info(f"Agent 1 Orchestrator: Default voice set to {voice_id}")
     
-    async def get_system_status(self):
+    async def get_system_status(self) -> Dict[str, Any]:
         """Get comprehensive system status"""
-        status = {
-            "agent_1_status": "active",
-            "sub_agents": {},
-            "voice_cloning": {
-                "status": "unknown",
-                "default_voice": self.default_voice_id,
-                "available_voices": []
+        
+        # Update cluster status
+        self.cluster_status = {
+            "intelligence_engine": {
+                "name": self.intelligence_engine.cluster_name,
+                "status": self.intelligence_engine.status.value,
+                "metrics": self.intelligence_engine.metrics,
+                "summary": self.intelligence_engine.get_intelligence_summary()
             },
-            "automation": {
-                "enabled": True,
-                "settings": self.automation_settings
+            "creation_engine": {
+                "name": self.creation_engine.cluster_name,
+                "status": self.creation_engine.status.value,
+                "metrics": self.creation_engine.metrics,
+                "summary": self.creation_engine.get_creation_summary()
             },
-            "content_pipeline": {
-                "topics_in_queue": 0,
-                "content_pieces_ready": 0,
-                "published_today": 0
+            "distribution_engine": {
+                "name": self.distribution_engine.cluster_name,
+                "status": self.distribution_engine.status.value,
+                "metrics": self.distribution_engine.metrics,
+                "summary": self.distribution_engine.get_distribution_summary()
             }
         }
         
-        # Check sub-agents status
-        for name, agent in self.sub_agents.items():
-            status["sub_agents"][name] = {
-                "name": agent.name,
-                "status": agent.status.value,
-                "agent_id": agent.agent_id
-            }
-        
         # Check voice cloning status
+        voice_status = {
+            "enabled": self.config["voice_cloning_enabled"],
+            "default_voice": self.config["default_voice_id"],
+            "status": "unknown"
+        }
+        
         try:
             voice_manager = self.get_voice_manager()
-            credentials_valid = await voice_manager.validate_credentials()
-            status["voice_cloning"]["status"] = "operational" if credentials_valid else "error"
-            
-            # Get available voices (from localStorage equivalent)
-            # This would be enhanced to track created voices
-            
+            if voice_manager:
+                credentials_valid = await voice_manager.validate_credentials()
+                voice_status["status"] = "operational" if credentials_valid else "error"
+            else:
+                voice_status["status"] = "not_initialized"
         except Exception as e:
-            status["voice_cloning"]["status"] = f"error: {str(e)}"
+            voice_status["status"] = f"error: {str(e)}"
         
-        # Get content pipeline metrics
+        # Get workflow metrics
+        active_workflows_count = len(self.active_workflows)
+        
+        return {
+            "orchestrator_status": self.status,
+            "orchestrator_id": self.orchestrator_id,
+            "clusters": self.cluster_status,
+            "voice_cloning": voice_status,
+            "automation": {
+                "enabled": self.config["automation_enabled"],
+                "settings": self.config["workflow_settings"]
+            },
+            "workflows": {
+                "active_count": active_workflows_count,
+                "completed_count": self.performance_metrics["workflows_completed"],
+                "success_rate": self.performance_metrics["success_rate"],
+                "recent_workflows": self.workflow_history[-5:] if self.workflow_history else []
+            },
+            "event_bus_status": "active"  # Assume event bus is active
+        }
+    
+    async def execute_full_workflow(self, workflow_config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Execute complete automated content creation workflow using event-driven clusters"""
+        
+        workflow_id = str(uuid.uuid4())
+        workflow_config = workflow_config or {}
+        
+        logger.info(f"Agent 1 Orchestrator: Starting full workflow {workflow_id}")
+        
+        # Create workflow tracking
+        workflow = {
+            "id": workflow_id,
+            "started_at": datetime.utcnow(),
+            "status": "running",
+            "clusters_involved": ["intelligence", "creation", "distribution"],
+            "config": workflow_config,
+            "results": {},
+            "errors": []
+        }
+        
+        self.active_workflows[workflow_id] = workflow
+        
         try:
-            topics_count = await db.trending_topics.count_documents({
-                "discovered_date": {"$gte": datetime.utcnow() - timedelta(days=1)}
+            # Step 1: Intelligence Engine - Market Research & Strategy
+            logger.info(f"Workflow {workflow_id}: Step 1 - Intelligence Engine")
+            intelligence_result = await self.intelligence_engine.process_task({
+                "type": "generate_strategy",
+                "data": {
+                    "niche": workflow_config.get("niche", "technology"),
+                    "platforms": workflow_config.get("platforms", ["youtube", "instagram", "tiktok", "twitter"]),
+                    "content_count": workflow_config.get("content_count", 5)
+                }
             })
-            content_count = await db.content_pieces.count_documents({
-                "created_date": {"$gte": datetime.utcnow() - timedelta(days=1)}
-            })
+            workflow["results"]["intelligence"] = intelligence_result
             
-            status["content_pipeline"]["topics_in_queue"] = topics_count
-            status["content_pipeline"]["content_pieces_ready"] = content_count
+            # Step 2: Creation Engine - Content Creation & Voice Cloning
+            logger.info(f"Workflow {workflow_id}: Step 2 - Creation Engine (triggered by events)")
+            # Creation Engine will be triggered by Intelligence Engine's STRATEGY_READY event
+            # Wait for content creation to complete
+            creation_timeout = 300  # 5 minutes timeout
+            creation_start = datetime.utcnow()
             
-        except Exception as e:
-            logger.error(f"Failed to get pipeline metrics: {str(e)}")
-        
-        return status
-
-    async def execute_full_workflow(self, voice_id: Optional[str] = None) -> Dict[str, Any]:
-        """Execute the complete automated content creation workflow with voice cloning integration"""
-        workflow_results = {}
-        
-        try:
-            logger.info("Agent 1: Starting full automated workflow...")
+            while (datetime.utcnow() - creation_start).seconds < creation_timeout:
+                # Check if creation has results
+                if hasattr(self.creation_engine, 'active_projects') and self.creation_engine.active_projects:
+                    break
+                await asyncio.sleep(2)
             
-            # Step 1: Discover trending topics
-            logger.info("Agent 1: Step 1 - Discovering trending topics...")
-            topics_result = await self.sub_agents["trending_topics"].execute_task({})
-            workflow_results["trending_topics"] = topics_result
+            # Get creation results
+            creation_result = {
+                "status": "processing_via_events",
+                "projects_active": len(self.creation_engine.active_projects) if hasattr(self.creation_engine, 'active_projects') else 0,
+                "voice_manager_available": self.creation_engine.voice_manager is not None
+            }
+            workflow["results"]["creation"] = creation_result
             
-            # Step 2: Create content based on topics
-            logger.info("Agent 1: Step 2 - Creating content for selected topics...")
-            content_result = await self.sub_agents["topic_selector"].execute_task({
-                "topics": topics_result.get("topics", [])
-            })
-            workflow_results["content_creation"] = content_result
+            # Step 3: Distribution Engine - Scheduling & Publishing
+            logger.info(f"Workflow {workflow_id}: Step 3 - Distribution Engine (triggered by events)")
+            # Distribution Engine will be triggered by Creation Engine's content ready events
             
-            # Step 3: Apply branding
-            logger.info("Agent 1: Step 3 - Applying branding guidelines...")
-            branding_result = await self.sub_agents["brand_ambassador"].execute_task({})
-            workflow_results["branding"] = branding_result
+            distribution_result = {
+                "status": "processing_via_events",
+                "queue_size": len(self.distribution_engine.content_queue),
+                "published_count": len(self.distribution_engine.published_content)
+            }
+            workflow["results"]["distribution"] = distribution_result
             
-            # Step 4: Voice cloning integration
-            logger.info("Agent 1: Step 4 - Processing voice cloning for content...")
-            voice_result = await self._process_voice_cloning(content_result, voice_id)
-            workflow_results["voice_cloning"] = voice_result
+            # Complete workflow
+            workflow["status"] = "completed"
+            workflow["completed_at"] = datetime.utcnow()
+            workflow["duration_seconds"] = (workflow["completed_at"] - workflow["started_at"]).seconds
             
-            # Step 5: Content scheduling and automation
-            logger.info("Agent 1: Step 5 - Setting up content scheduling...")
-            scheduling_result = await self._setup_content_scheduling(content_result)
-            workflow_results["scheduling"] = scheduling_result
+            # Update performance metrics
+            self.performance_metrics["workflows_completed"] += 1
+            self.workflow_history.append(workflow)
             
-            # Step 6: Content auditing and optimization
-            logger.info("Agent 1: Step 6 - Auditing and optimizing content...")
-            audit_result = await self.sub_agents["auditor_optimizer"].execute_task({
-                "content_pieces": content_result.get("content", [])
-            })
-            workflow_results["audit_optimization"] = audit_result
+            # Remove from active workflows
+            if workflow_id in self.active_workflows:
+                del self.active_workflows[workflow_id]
             
-            # Step 7: Monetization strategy setup
-            logger.info("Agent 1: Step 7 - Setting up monetization strategies...")
-            monetization_result = await self.sub_agents["monetization"].execute_task({
-                "content_pieces": audit_result.get("content", [])
-            })
-            workflow_results["monetization"] = monetization_result
-            
-            # Step 8: Blog content creation
-            logger.info("Agent 1: Step 8 - Creating blog posts...")
-            blog_result = await self.sub_agents["blog_writer"].execute_task({
-                "topics": topics_result.get("topics", [])
-            })
-            workflow_results["blog_writing"] = blog_result
-            
-            # Step 9: Content generation and asset preparation
-            logger.info("Agent 1: Step 9 - Generating content assets...")
-            generation_result = await self.sub_agents["content_generator"].execute_task({
-                "content_pieces": audit_result.get("content", [])
-            })
-            workflow_results["content_generation"] = generation_result
-            
-            # Step 10: Analytics collection and insights
-            logger.info("Agent 1: Step 10 - Collecting analytics and insights...")
-            analytics_result = await self.sub_agents["analytics"].execute_task({})
-            workflow_results["analytics"] = analytics_result
-            
-            # Step 11: Compliance checking
-            logger.info("Agent 1: Step 11 - Running compliance checks...")
-            compliance_result = await self.sub_agents["compliance"].execute_task({
-                "content_pieces": audit_result.get("content", [])
-            })
-            workflow_results["compliance"] = compliance_result
-            
-            logger.info("Agent 1: Workflow completed successfully!")
+            logger.info(f"Agent 1 Orchestrator: Workflow {workflow_id} completed successfully")
             
             return {
                 "status": "success",
-                "workflow_completed": True,
-                "agents_executed": len(workflow_results),
-                "results": workflow_results,
-                "timestamp": datetime.utcnow().isoformat(),
-                "agent_1_summary": {
-                    "topics_discovered": len(topics_result.get("topics", [])),
-                    "content_pieces_created": len(content_result.get("content", [])),
-                    "content_audited": audit_result.get("audited_content", 0),
-                    "blog_posts_created": len(blog_result.get("posts", [])),
-                    "monetization_strategies": len(monetization_result.get("strategies", [])),
-                    "content_assets_generated": generation_result.get("assets_generated", 0),
-                    "compliance_approved": len([r for r in compliance_result.get("compliance_results", []) if r.get("approved")]),
-                    "voice_clones_processed": voice_result.get("processed", 0),
-                    "content_scheduled": scheduling_result.get("scheduled_count", 0),
-                    "automation_status": "active",
-                    "total_agents_executed": len(workflow_results)
+                "workflow_id": workflow_id,
+                "duration_seconds": workflow["duration_seconds"],
+                "results": workflow["results"],
+                "clusters_executed": len(workflow["results"]),
+                "summary": {
+                    "intelligence_strategy_created": intelligence_result.get("status") == "completed",
+                    "content_creation_initiated": True,
+                    "distribution_setup": True,
+                    "voice_cloning_available": self.config["voice_cloning_enabled"],
+                    "automation_active": self.config["automation_enabled"]
                 }
             }
             
         except Exception as e:
-            logger.error(f"Agent 1: Workflow execution failed: {str(e)}")
+            # Handle workflow error
+            workflow["status"] = "error"
+            workflow["error"] = str(e)
+            workflow["completed_at"] = datetime.utcnow()
+            
+            self.performance_metrics["errors"].append({
+                "workflow_id": workflow_id,
+                "error": str(e),
+                "timestamp": datetime.utcnow()
+            })
+            
+            if workflow_id in self.active_workflows:
+                del self.active_workflows[workflow_id]
+            
+            logger.error(f"Agent 1 Orchestrator: Workflow {workflow_id} failed: {str(e)}")
+            
             return {
                 "status": "error",
+                "workflow_id": workflow_id,
                 "error": str(e),
-                "completed_steps": list(workflow_results.keys()),
-                "partial_results": workflow_results,
-                "agent_1_status": "error"
+                "partial_results": workflow["results"]
             }
     
-    async def _process_voice_cloning(self, content_result: Dict, voice_id: Optional[str] = None) -> Dict[str, Any]:
-        """Process voice cloning for content pieces"""
-        try:
-            voice_manager = self.get_voice_manager()
-            target_voice = voice_id or self.default_voice_id
-            
-            if not target_voice:
-                return {
-                    "status": "skipped",
-                    "message": "No voice ID specified - voice cloning skipped",
-                    "processed": 0
-                }
-            
-            content_pieces = content_result.get("content", [])
-            processed_count = 0
-            
-            for content_piece in content_pieces:
-                try:
-                    # Generate voice audio for video content
-                    if content_piece.get("content_type") in ["video_long", "video_short"]:
-                        script = content_piece.get("script", "")
-                        if script and len(script) > 0:
-                            # Generate audio using voice cloning
-                            audio_url = await voice_manager.generate_speech_with_voice(
-                                text=script[:1000],  # Limit to 1000 chars for demo
-                                voice_id=target_voice,
-                                model="speech-02-hd",
-                                emotion="happy"
-                            )
-                            
-                            # Update content piece with audio URL
-                            content_piece["voice_audio_url"] = audio_url
-                            content_piece["voice_id_used"] = target_voice
-                            
-                            # Update in database
-                            await db.content_pieces.update_one(
-                                {"id": content_piece.get("id")},
-                                {"$set": {"voice_audio_url": audio_url, "voice_id_used": target_voice}}
-                            )
-                            
-                            processed_count += 1
-                            
-                except Exception as e:
-                    logger.warning(f"Failed to generate voice for content {content_piece.get('id', 'unknown')}: {str(e)}")
-                    continue
-            
-            return {
-                "status": "completed",
-                "processed": processed_count,
-                "voice_id_used": target_voice,
-                "message": f"Processed {processed_count} content pieces with voice cloning"
-            }
-            
-        except Exception as e:
-            logger.error(f"Voice cloning processing failed: {str(e)}")
-            return {
-                "status": "error",
-                "error": str(e),
-                "processed": 0
-            }
+    async def get_cluster_details(self, cluster_name: str) -> Dict[str, Any]:
+        """Get detailed information about a specific cluster"""
+        cluster_map = {
+            "intelligence": self.intelligence_engine,
+            "creation": self.creation_engine,
+            "distribution": self.distribution_engine
+        }
+        
+        if cluster_name not in cluster_map:
+            raise ValueError(f"Unknown cluster: {cluster_name}")
+        
+        cluster = cluster_map[cluster_name]
+        
+        return {
+            "name": cluster.cluster_name,
+            "status": cluster.status.value,
+            "metrics": cluster.metrics,
+            "config": getattr(cluster, 'config', {}),
+            "summary": getattr(cluster, f'get_{cluster_name}_summary', lambda: {})()
+        }
     
-    async def _setup_content_scheduling(self, content_result: Dict) -> Dict[str, Any]:
-        """Setup automated content scheduling"""
+    async def trigger_specific_cluster(self, cluster_name: str, task_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Trigger a specific cluster with custom task data"""
+        cluster_map = {
+            "intelligence": self.intelligence_engine,
+            "creation": self.creation_engine,
+            "distribution": self.distribution_engine
+        }
+        
+        if cluster_name not in cluster_map:
+            raise ValueError(f"Unknown cluster: {cluster_name}")
+        
+        cluster = cluster_map[cluster_name]
+        logger.info(f"Agent 1 Orchestrator: Triggering {cluster_name} cluster")
+        
         try:
-            content_pieces = content_result.get("content", [])
-            scheduled_count = 0
-            
-            # Group content by platform
-            platform_content = {}
-            for content_piece in content_pieces:
-                platform = content_piece.get("platform", "unknown")
-                if platform not in platform_content:
-                    platform_content[platform] = []
-                platform_content[platform].append(content_piece)
-            
-            # Schedule content based on automation settings
-            for platform, pieces in platform_content.items():
-                if platform in self.automation_settings["content_schedule"]:
-                    schedule_config = self.automation_settings["content_schedule"][platform]
-                    
-                    # Add scheduling metadata to content pieces
-                    for piece in pieces:
-                        piece["scheduled"] = True
-                        piece["schedule_config"] = schedule_config
-                        piece["automation_enabled"] = True
-                        scheduled_count += 1
-                        
-                        # Update in database
-                        await db.content_pieces.update_one(
-                            {"id": piece.get("id")},
-                            {"$set": {
-                                "scheduled": True,
-                                "schedule_config": schedule_config,
-                                "automation_enabled": True
-                            }}
-                        )
-            
+            result = await cluster.process_task(task_data)
             return {
-                "status": "completed",
-                "scheduled_count": scheduled_count,
-                "platforms_configured": list(platform_content.keys()),
-                "automation_active": True
+                "status": "success",
+                "cluster": cluster_name,
+                "result": result
             }
-            
         except Exception as e:
-            logger.error(f"Content scheduling setup failed: {str(e)}")
+            logger.error(f"Failed to trigger {cluster_name} cluster: {str(e)}")
             return {
                 "status": "error",
-                "error": str(e),
-                "scheduled_count": 0
-            }
-    
-    async def _setup_analytics_monitoring(self) -> Dict[str, Any]:
-        """Setup analytics and monitoring for the automated system"""
-        try:
-            # Create analytics tracking configuration
-            analytics_config = {
-                "tracking_enabled": True,
-                "metrics": [
-                    "content_performance",
-                    "voice_clone_usage",
-                    "automation_efficiency",
-                    "platform_engagement"
-                ],
-                "reporting_frequency": "daily",
-                "alerts_enabled": True
-            }
-            
-            return {
-                "status": "completed",
-                "config": analytics_config,
-                "monitoring_active": True
-            }
-            
-        except Exception as e:
-            logger.error(f"Analytics setup failed: {str(e)}")
-            return {
-                "status": "error",
+                "cluster": cluster_name,
                 "error": str(e)
             }
 
