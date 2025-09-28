@@ -733,32 +733,28 @@ async def root():
     return {"message": "Emergent AI Multi-Agent Content Creation System", "version": "1.0.0"}
 
 @api_router.post("/agents/execute-workflow")
-async def execute_workflow(background_tasks: BackgroundTasks, voice_id: Optional[str] = None):
-    """Execute the complete automated multi-agent workflow with optional voice cloning"""
+async def execute_workflow(background_tasks: BackgroundTasks, workflow_config: Optional[Dict[str, Any]] = None):
+    """Execute the complete automated multi-agent workflow using event-driven clusters"""
     try:
-        result = await central_overseer.execute_full_workflow(voice_id=voice_id)
+        result = await agent_1_orchestrator.execute_full_workflow(workflow_config=workflow_config)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/agents/status")
 async def get_agents_status():
-    """Get status of all agents"""
-    agents_status = {}
-    for name, agent in central_overseer.sub_agents.items():
-        agents_status[name] = {
-            "name": agent.name,
-            "status": agent.status.value,
-            "agent_id": agent.agent_id
-        }
-    
-    return {"agents": agents_status}
+    """Get status of all agent clusters"""
+    try:
+        status = await agent_1_orchestrator.get_system_status()
+        return status
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/system/status")
 async def get_system_status():
-    """Get comprehensive system status including voice cloning and automation"""
+    """Get comprehensive system status including clusters and automation"""
     try:
-        status = await central_overseer.get_system_status()
+        status = await agent_1_orchestrator.get_system_status()
         return status
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -767,8 +763,30 @@ async def get_system_status():
 async def set_default_voice(voice_id: str):
     """Set the default voice for content generation"""
     try:
-        await central_overseer.set_default_voice(voice_id)
+        await agent_1_orchestrator.set_default_voice(voice_id)
         return {"status": "success", "message": f"Default voice set to {voice_id}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/clusters/{cluster_name}")
+async def get_cluster_details(cluster_name: str):
+    """Get detailed information about a specific cluster"""
+    try:
+        result = await agent_1_orchestrator.get_cluster_details(cluster_name)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/clusters/{cluster_name}/trigger")
+async def trigger_cluster(cluster_name: str, task_data: Dict[str, Any]):
+    """Trigger a specific cluster with custom task data"""
+    try:
+        result = await agent_1_orchestrator.trigger_specific_cluster(cluster_name, task_data)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
