@@ -158,8 +158,6 @@ class Agent(BaseModel):
     performance_metrics: Dict[str, Any] = Field(default_factory=dict)
 
 # Old agent classes removed - now using event-driven architecture
-
-    async def _process_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
         prompt = """
         Research and identify the top 10 trending topics in technology for content creation.
         Focus on topics with high virality potential, search volume, and monetization opportunities.
