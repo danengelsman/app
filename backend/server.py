@@ -714,8 +714,18 @@ class Agent1Orchestrator:
                 "error": str(e)
             }
 
-# Initialize the central overseer
-central_overseer = CentralOverseerAgent()
+# Initialize the Agent 1 Orchestrator
+agent_1_orchestrator = Agent1Orchestrator()
+
+# Set database connection for orchestrator and clusters
+async def initialize_orchestrator():
+    """Initialize the orchestrator and its clusters with database connection"""
+    agent_1_orchestrator.set_database(db)
+    logger.info("Agent 1 Orchestrator initialized with database connection")
+
+# Call initialization
+import asyncio
+asyncio.create_task(initialize_orchestrator())
 
 # API Endpoints
 @api_router.get("/")
