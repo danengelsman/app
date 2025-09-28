@@ -160,7 +160,7 @@ class Agent(BaseModel):
 # Old agent classes removed - now using event-driven architecture
 # All old agent implementation content removed
 
-class TopicSelectorAgent(BaseAgent):
+# TopicSelectorAgent removed
     def __init__(self):
         super().__init__(
             "Agent 1B - Topic Selector and Copy Producer",
