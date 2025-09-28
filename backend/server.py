@@ -406,14 +406,14 @@ class BrandAmbassadorAgent(BaseAgent):
         
         return {"status": "success", "branding_kit": branding_kit.dict()}
 
-# Import extended agents
-from agents_extended import (
-    AuditorOptimizerAgent, MonetizationAgent, BlogWriterAgent,
-    ContentGeneratorAgent, AnalyticsAgent, ComplianceAgent
-)
+# Import event-driven agent clusters
+from event_bus import event_bus, EventTypes, EventPriority
+from intelligence_engine import IntelligenceEngine
+from creation_engine import CreationEngine
+from distribution_engine import DistributionEngine
 
-# Central Overseer Agent
-class CentralOverseerAgent(BaseAgent):
+# Agent 1 Orchestrator - Event-Driven Architecture
+class Agent1Orchestrator:
     """Agent 1 - Central Overseer that coordinates all other agents and manages voice cloning integration"""
     
     def __init__(self):
