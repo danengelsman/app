@@ -2,7 +2,7 @@ import requests
 import json
 
 def test_trending_topics():
-    base_url = "https://emergent-content-1.preview.emergentagent.com"
+    base_url = "https://ai-creator-hub-53.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     print("🔍 Testing Trending Topics API...")

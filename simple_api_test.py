@@ -2,7 +2,7 @@ import requests
 import json
 
 def test_api_endpoint(endpoint, description):
-    url = f"https://emergent-content-1.preview.emergentagent.com/api/{endpoint}"
+    url = f"https://ai-creator-hub-53.preview.emergentagent.com/api/{endpoint}"
     print(f"\n🔍 Testing {description}")
     print(f"URL: {url}")
     
