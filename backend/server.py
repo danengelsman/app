@@ -149,30 +149,13 @@ class Analytics(BaseModel):
 
 # Database Models (keeping for compatibility)
 class Agent(BaseModel):
-    def __init__(self, name: str, description: str):
-        self.agent_id = str(uuid.uuid4())
-        self.name = name
-        self.description = description
-        self.status = AgentStatus.IDLE
-        self.llm_chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"agent_{self.agent_id}",
-            system_message=f"You are {name}. {description}"
-        ).with_model("openai", "gpt-4o")
-
-    async def execute_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
-        self.status = AgentStatus.RUNNING
-        try:
-            result = await self._process_task(task_data)
-            self.status = AgentStatus.COMPLETED
-            return result
-        except Exception as e:
-            self.status = AgentStatus.ERROR
-            logging.error(f"Agent {self.name} error: {str(e)}")
-            raise e
-
-    async def _process_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
-        raise NotImplementedError
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    status: AgentStatus = AgentStatus.IDLE
+    last_activity: datetime = Field(default_factory=datetime.utcnow)
+    configuration: Dict[str, Any] = Field(default_factory=dict)
+    performance_metrics: Dict[str, Any] = Field(default_factory=dict)
 
 class TrendingTopicsAgent(BaseAgent):
     def __init__(self):
