@@ -414,38 +414,55 @@ from distribution_engine import DistributionEngine
 
 # Agent 1 Orchestrator - Event-Driven Architecture
 class Agent1Orchestrator:
-    """Agent 1 - Central Overseer that coordinates all other agents and manages voice cloning integration"""
+    """
+    Agent 1 - Orchestrator for Event-Driven Agent Clusters
+    Manages Intelligence Engine, Creation Engine, and Distribution Engine via event-driven communication
+    """
     
     def __init__(self):
-        super().__init__(
-            "Agent 1 - Central Overseer",
-            "Coordinates all sub-agents, manages voice cloning, and orchestrates the complete automated content creation workflow."
-        )
-        self.sub_agents = {
-            "trending_topics": TrendingTopicsAgent(),
-            "topic_selector": TopicSelectorAgent(),
-            "brand_ambassador": BrandAmbassadorAgent(),
-            "auditor_optimizer": AuditorOptimizerAgent(),
-            "monetization": MonetizationAgent(),
-            "blog_writer": BlogWriterAgent(),
-            "content_generator": ContentGeneratorAgent(),
-            "analytics": AnalyticsAgent(),
-            "compliance": ComplianceAgent()
-        }
+        self.orchestrator_id = str(uuid.uuid4())
+        self.name = "Agent 1 - Cluster Orchestrator"
+        self.description = "Event-driven orchestrator managing three intelligent agent clusters"
+        self.status = "initializing"
         
-        # Voice cloning integration
-        self.voice_manager = None
-        self.default_voice_id = None
-        self.automation_settings = {
-            "auto_generate_voices": True,
-            "auto_publish": False,
-            "content_schedule": {
-                "youtube": {"frequency": "daily", "time": "10:00"},
-                "instagram": {"frequency": "twice_daily", "times": ["09:00", "17:00"]},
-                "tiktok": {"frequency": "twice_daily", "times": ["12:00", "20:00"]},
-                "twitter": {"frequency": "hourly", "active_hours": [9, 17]}
+        # Initialize the three clusters
+        self.intelligence_engine = IntelligenceEngine()
+        self.creation_engine = CreationEngine()
+        self.distribution_engine = DistributionEngine()
+        
+        # Orchestrator configuration
+        self.config = {
+            "automation_enabled": True,
+            "voice_cloning_enabled": True,
+            "default_voice_id": None,
+            "workflow_settings": {
+                "auto_execute": False,
+                "parallel_processing": True,
+                "quality_checks": True,
+                "compliance_checks": True
+            },
+            "cluster_priorities": {
+                "intelligence": 1,  # Execute first
+                "creation": 2,      # Execute after intelligence
+                "distribution": 3   # Execute last
             }
         }
+        
+        # Orchestrator state
+        self.active_workflows = {}
+        self.workflow_history = []
+        self.cluster_status = {}
+        self.performance_metrics = {
+            "workflows_completed": 0,
+            "average_completion_time": 0,
+            "success_rate": 0,
+            "errors": []
+        }
+        
+        # Database connection (will be set from server initialization)
+        self.db = None
+        
+        self.status = "ready"
     
     def get_voice_manager(self):
         """Get voice cloning manager"""
