@@ -159,7 +159,7 @@ class Agent(BaseModel):
 
 # Old agent classes removed - now using event-driven architecture
 # Content removed
-        Focus on topics with high virality potential, search volume, and monetization opportunities.
+# More content removed
         
         Consider these areas:
         - AI and Machine Learning developments
