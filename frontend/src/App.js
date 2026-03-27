@@ -1859,6 +1859,151 @@ const BrandingKit = () => {
   );
 };
 
+const FusionStudio = () => {
+  const [studioPrompt, setStudioPrompt] = useState('');
+  const [studioOutput, setStudioOutput] = useState('');
+  const [brandVoice, setBrandVoice] = useState('Expert but approachable');
+  const [contentGoal, setContentGoal] = useState('YouTube long-form educational video');
+  const [hybridPlan, setHybridPlan] = useState(null);
+
+  const buildHybridPlan = () => {
+    const promptSummary = studioPrompt.trim() || 'No prompt provided from Google AI Studio.';
+    const outputSummary = studioOutput.trim() || 'No output provided from Google AI Studio.';
+
+    const plan = {
+      strengths_kept_from_this_app: [
+        'Trend-aware topic selection from the Trending Topics workflow',
+        'Cross-platform repurposing across YouTube, Instagram, TikTok, and X/Twitter',
+        'Editorial packaging with title, hook, script, and hashtags',
+        'Operational visibility through dashboard and agent status',
+      ],
+      strengths_kept_from_google_ai_studio: [
+        'Prompt-tuned creative direction and structured generation',
+        'Fast ideation loop from direct model interaction',
+        'Custom style instructions and response shaping',
+      ],
+      merged_brief: {
+        objective: contentGoal,
+        brand_voice: brandVoice,
+        source_prompt: promptSummary,
+        source_output: outputSummary,
+      },
+      production_pipeline: [
+        '1) Discover trending topic from this app',
+        '2) Feed selected topic into your AI Studio prompt style',
+        '3) Generate a long-form master script',
+        '4) Auto-adapt into short video script + thread + caption pack',
+        '5) Review and schedule from the Content Library',
+      ],
+      copy_paste_prompt_template: `You are my senior content strategist.\nUse this trend context: {{TREND_TOPIC}}\nUse this voice: ${brandVoice}\nTarget format: ${contentGoal}\nReference style from this sample output: ${outputSummary}\nReturn JSON with keys: title, hook, outline, script, shorts_cutdown, thread, hashtags.`,
+    };
+
+    setHybridPlan(plan);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-indigo-600 to-cyan-600 text-white p-6 rounded-lg shadow-lg">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Fusion Studio</h1>
+        <p className="text-indigo-100">
+          Blend your Google AI Studio prompt style with this app&apos;s autonomous trend + multi-platform workflow.
+        </p>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-lg border space-y-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Paste your Google AI Studio prompt</label>
+            <textarea
+              value={studioPrompt}
+              onChange={(e) => setStudioPrompt(e.target.value)}
+              className="w-full min-h-[160px] p-3 border rounded-lg"
+              placeholder="Paste your best prompt from Google AI Studio..."
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Paste your strongest sample output</label>
+            <textarea
+              value={studioOutput}
+              onChange={(e) => setStudioOutput(e.target.value)}
+              className="w-full min-h-[160px] p-3 border rounded-lg"
+              placeholder="Paste a great model response to preserve style and structure..."
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Brand voice</label>
+            <input
+              value={brandVoice}
+              onChange={(e) => setBrandVoice(e.target.value)}
+              className="w-full p-3 border rounded-lg"
+              placeholder="e.g. Bold, practical, no fluff"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Primary content goal</label>
+            <input
+              value={contentGoal}
+              onChange={(e) => setContentGoal(e.target.value)}
+              className="w-full p-3 border rounded-lg"
+              placeholder="e.g. Weekly newsletter + LinkedIn thread"
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={buildHybridPlan}
+          className="bg-indigo-600 text-white px-5 py-3 rounded-lg hover:bg-indigo-700 transition-colors font-semibold"
+        >
+          Build merged workflow
+        </button>
+      </div>
+
+      {hybridPlan && (
+        <div className="bg-white p-6 rounded-lg shadow-lg border space-y-5">
+          <h2 className="text-xl font-bold text-gray-800">Your Combined System Plan</h2>
+
+          <div>
+            <h3 className="font-semibold text-gray-700 mb-2">What stays from this app</h3>
+            <ul className="list-disc pl-6 text-gray-700 space-y-1">
+              {hybridPlan.strengths_kept_from_this_app.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-gray-700 mb-2">What stays from Google AI Studio</h3>
+            <ul className="list-disc pl-6 text-gray-700 space-y-1">
+              {hybridPlan.strengths_kept_from_google_ai_studio.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-gray-700 mb-2">Merged production pipeline</h3>
+            <ol className="list-decimal pl-6 text-gray-700 space-y-1">
+              {hybridPlan.production_pipeline.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ol>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-gray-700 mb-2">Copy/paste prompt template</h3>
+            <pre className="bg-gray-50 border rounded-lg p-4 text-sm text-gray-700 whitespace-pre-wrap">
+              {hybridPlan.copy_paste_prompt_template}
+            </pre>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Navigation Component
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -1925,6 +2070,12 @@ const Navigation = () => {
               className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
               Agent 1
+            </Link>
+            <Link
+              to="/fusion"
+              className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Fusion
             </Link>
           </div>
 
@@ -2004,6 +2155,13 @@ const Navigation = () => {
           >
             Agent 1
           </Link>
+          <Link
+            to="/fusion"
+            onClick={closeMobileMenu}
+            className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium transition-colors"
+          >
+            Fusion
+          </Link>
         </div>
       </div>
     </nav>
@@ -2024,6 +2182,7 @@ function App() {
             <Route path="/branding" element={<BrandingKit />} />
             <Route path="/voice-cloning" element={<VoiceCloning />} />
             <Route path="/agent-1" element={<Agent1Dashboard />} />
+            <Route path="/fusion" element={<FusionStudio />} />
           </Routes>
         </div>
       </BrowserRouter>
