@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Outlet } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
+import {
+  LandingPage,
+  ContactPage,
+  TermsPage,
+  PrivacyPage,
+  RefundPolicyPage,
+  CancellationPolicyPage,
+} from './components/PublicSite';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -2021,16 +2029,19 @@ const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold text-gray-800 flex-shrink-0">
-              TechPulse AI
+          <div className="flex items-center space-x-4">
+            <Link to="/" className="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex-shrink-0">
+              ← Agentic Solutions
+            </Link>
+            <Link to="/dashboard" className="text-xl font-bold text-gray-800 flex-shrink-0">
+              Vertano
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link 
-              to="/" 
+            <Link
+              to="/dashboard"
               className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
               Dashboard
@@ -2106,8 +2117,8 @@ const Navigation = () => {
       {/* Mobile menu */}
       <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
-          <Link 
-            to="/" 
+          <Link
+            to="/dashboard"
             onClick={closeMobileMenu}
             className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium transition-colors"
           >
@@ -2168,25 +2179,40 @@ const Navigation = () => {
   );
 };
 
+const AppLayout = () => (
+  <div className="App min-h-screen bg-gray-50">
+    <Navigation />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+      <Outlet />
+    </div>
+  </div>
+);
+
 function App() {
   return (
-    <div className="App min-h-screen bg-gray-50">
-      <BrowserRouter>
-        <Navigation />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/agents" element={<AgentsControl />} />
-            <Route path="/topics" element={<TrendingTopics />} />
-            <Route path="/content" element={<ContentLibrary />} />
-            <Route path="/branding" element={<BrandingKit />} />
-            <Route path="/voice-cloning" element={<VoiceCloning />} />
-            <Route path="/agent-1" element={<Agent1Dashboard />} />
-            <Route path="/fusion" element={<FusionStudio />} />
-          </Routes>
-        </div>
-      </BrowserRouter>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {/* Public site routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/refund-policy" element={<RefundPolicyPage />} />
+        <Route path="/cancellation-policy" element={<CancellationPolicyPage />} />
+
+        {/* Vertano app routes */}
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/agents" element={<AgentsControl />} />
+          <Route path="/topics" element={<TrendingTopics />} />
+          <Route path="/content" element={<ContentLibrary />} />
+          <Route path="/branding" element={<BrandingKit />} />
+          <Route path="/voice-cloning" element={<VoiceCloning />} />
+          <Route path="/agent-1" element={<Agent1Dashboard />} />
+          <Route path="/fusion" element={<FusionStudio />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
