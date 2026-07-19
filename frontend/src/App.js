@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Outlet, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
 import {
@@ -2188,9 +2188,21 @@ const AppLayout = () => (
   </div>
 );
 
+const ScrollToHash = () => {
+  const location = useLocation();
+  useEffect(() => {
+    if (location.hash) {
+      const el = document.querySelector(location.hash);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [location.hash]);
+  return null;
+};
+
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToHash />
       <Routes>
         {/* Public site routes */}
         <Route path="/" element={<LandingPage />} />

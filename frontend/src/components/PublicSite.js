@@ -430,6 +430,7 @@ export const ContactPage = () => (
             onSubmit={(e) => {
               e.preventDefault();
               alert('Message sent! We\'ll be in touch within 1 business day.');
+              e.target.reset();
             }}
             className="space-y-4"
           >
